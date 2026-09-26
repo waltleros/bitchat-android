@@ -12,7 +12,7 @@ android {
     buildToolsVersion = libs.versions.buildTools.get()
 
     defaultConfig {
-        applicationId = "com.bitchat.droid"
+        applicationId = "com.jasiri.android"
         minSdk = 33 // Wear OS 4 (Pixel Watch 1+): the S+ Bluetooth permissions the app
         // declares only exist from API 31, and API 30 would additionally require location
         // for BLE scan results, which the app deliberately refuses.
