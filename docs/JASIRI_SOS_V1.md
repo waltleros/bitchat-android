@@ -148,3 +148,48 @@ is refused locally and never sent. Sending over Wi-Fi Aware is not yet supported
 ### Not yet supported
 
 - SOS is not yet carried over Wi-Fi Aware (MeshCore). This is planned for a later version.
+
+## Sender behaviour (v1)
+
+A phone manages at most one SOS of its own at a time. Reference implementation:
+`app/src/main/java/com/jasiri/sos/OwnSosController.kt`.
+
+### States
+
+`IDLE` → `ACTIVE` → either `CANCELLING` → `CANCELLED`, or `EXPIRED`. From `CANCELLED` or
+`EXPIRED` the phone can start a new SOS, or reset to `IDLE`.
+
+### Rules
+
+1. **Start.** From `IDLE`, `CANCELLED` or `EXPIRED`, starting creates a new random non-zero
+   `sosId` with `seq` 0, sends immediately and begins re-broadcasting. Starting while `ACTIVE`
+   is an update. Starting while `CANCELLING` is ignored.
+2. **Payload.** Every SOS send uses `kind` = SOS, the current `sosId`, `seq` and body, and
+   `timestamp` = the sender's clock in seconds at the moment of sending. A body that cannot be
+   encoded is rejected before any state changes.
+3. **Re-broadcast.** While `ACTIVE`, the SOS is re-sent every 30 s during the first 10 minutes
+   after start, then every 120 s. After a failed send the next attempt is 10 s later. Six hours
+   after start the SOS becomes `EXPIRED` and sending stops; no CANCEL is sent.
+4. **Update.** Only while `ACTIVE`: `seq` increases by 1 (wrapping at 65536), the new body is
+   sent immediately and the re-broadcast timer restarts from now. The fast/slow phase is still
+   measured from the original start.
+5. **Cancel.** Only while `ACTIVE`: re-broadcasting stops and a CANCEL payload (same `sosId`,
+   `seq` + 1, no body) is sent immediately and then twice more, 30 s apart, with the same `seq`.
+   The state is `CANCELLING` until the last CANCEL attempt, then `CANCELLED`. Failed CANCEL
+   sends are not retried sooner.
+6. **Send status.** Each attempt records its time. A successful hand-off to the transport
+   increments the success count, resets the consecutive-failure count and clears the "not sent"
+   warning. A refused or failed hand-off increments the consecutive-failure count and sets the
+   warning. "Successful" means queued for broadcast, not delivered to anyone.
+
+### Default timings
+
+| Setting | Default |
+|---------|---------|
+| Fast re-broadcast interval | 30 s |
+| Fast phase length (from start) | 10 min |
+| Slow re-broadcast interval | 120 s |
+| Retry after a failed send | 10 s |
+| SOS lifetime (from start) | 6 h |
+| CANCEL repeats | 3 |
+| Interval between CANCEL repeats | 30 s |
