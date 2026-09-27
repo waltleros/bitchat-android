@@ -1001,6 +1001,16 @@ class BluetoothMeshService(private val context: Context) : TransportBridgeServic
         }
     }
 
+    fun sendJasiriSos(payload: ByteArray): Boolean {   // JASIRI
+        if (com.jasiri.sos.SosCodec.decode(payload) == null) return false        // never broadcast an invalid SOS
+        val packet = JasiriSosPackets.buildBroadcast(hexStringToByteArray(myPeerID), payload, System.currentTimeMillis())
+        serviceScope.launch {
+            try { broadcastRoutedPacket(RoutedPacket(signPacketBeforeBroadcast(packet))) }
+            catch (e: Exception) { Log.w(TAG, "JASIRI SOS send failed: ${e.message}") }
+        }
+        return true
+    } // JASIRI
+
     fun prepareFilePrivate(
         recipientPeerID: String,
         file: com.bitchat.android.model.BitchatFilePacket,

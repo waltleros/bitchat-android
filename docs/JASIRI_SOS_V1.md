@@ -139,6 +139,12 @@ Otherwise:
 - Stock bitchat Android and iOS clients do not understand type `0x40`. They relay unknown
   broadcast types as usual without displaying them, so they still carry SOS across the mesh.
 
+### Sending
+
+The sender builds a broadcast `JASIRI_SOS` packet with TTL 7, signs it with its Ed25519
+signing key and broadcasts it over BLE. A payload that does not decode as a valid v1 payload
+is refused locally and never sent. Sending over Wi-Fi Aware is not yet supported.
+
 ### Not yet supported
 
 - SOS is not yet carried over Wi-Fi Aware (MeshCore). This is planned for a later version.
