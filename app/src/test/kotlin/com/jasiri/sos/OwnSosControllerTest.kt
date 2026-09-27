@@ -337,6 +337,39 @@ class OwnSosControllerTest {
         assertEquals(60_000L, status.startedAtMillis)
     }
 
+    @Test
+    fun `abandon while ACTIVE goes IDLE and sends nothing more`() = runTest {
+        val h = harness()
+        h.controller.start(BODY)
+
+        h.controller.abandon()
+
+        assertEquals(OwnSosState.IDLE, h.controller.status.value.state)
+        assertNull(h.controller.status.value.sosId)
+        assertEquals(1, h.sender.sent.size)
+
+        advanceTimeBy(20 * MINUTE)
+        runCurrent()
+        assertEquals(1, h.sender.sent.size)
+    }
+
+    @Test
+    fun `abandon while CANCELLING stops remaining cancels`() = runTest {
+        val h = harness()
+        h.controller.start(BODY)
+        h.controller.cancel()
+        assertEquals(OwnSosState.CANCELLING, h.controller.status.value.state)
+        assertEquals(1, h.sender.sent.count { it.payload.kind == SosKind.CANCEL })
+
+        h.controller.abandon()
+        advanceTimeBy(2 * MINUTE)
+        runCurrent()
+
+        assertEquals(OwnSosState.IDLE, h.controller.status.value.state)
+        assertEquals(1, h.sender.sent.count { it.payload.kind == SosKind.CANCEL })
+        assertEquals(2, h.sender.sent.size)
+    }
+
     private class Harness(val controller: OwnSosController, val sender: FakeSender) {
         var idCalls = 0
     }

@@ -158,6 +158,18 @@ class OwnSosController(
         }
     }
 
+    /**
+     * Stops everything immediately WITHOUT sending anything (no CANCEL) and returns to IDLE.
+     * Works from any state. Used when this phone's identity changes (panic wipe): the old SOS
+     * can no longer be signed by its origin, so re-broadcasts or CANCELs would be rejected.
+     */
+    fun abandon() {
+        synchronized(lock) {
+            stopJob()
+            _status.value = OwnSosStatus.IDLE
+        }
+    }
+
     private fun validate(body: SosBody) {
         SosCodec.encode(SosPayload(SosKind.SOS, sosId = 0L, seq = 0, timestampSeconds = 0L, body = body))
     }

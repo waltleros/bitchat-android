@@ -259,3 +259,27 @@ each group the highest severity comes first, then the most recently heard.
 - Responses that arrive before the SOS they refer to are dropped (rule 6). They are not buffered.
 - An entry that has been removed is forgotten. If a late re-broadcast of a removed SOS arrives,
   it creates a new `ACTIVE` entry. This includes a cancelled SOS whose 1-hour retention has passed.
+
+## App runtime (v1)
+
+Reference implementation: `app/src/main/java/com/jasiri/sos/SosRuntime.kt` and `JasiriSos.kt`.
+
+- **One runtime per process.** The `JasiriSos` singleton owns one `SosRuntime`. The runtime holds
+  this phone's own SOS controller and the board of other people's SOS, and shares one sender
+  between them.
+- **Attach and detach follow the mesh.** `MeshServiceHolder` attaches the runtime whenever the
+  mesh is created or reused, passing the mesh peer ID and its SOS send function. It detaches
+  when the mesh is cleared.
+  - While detached, the board, its entries and the own SOS are kept. Own re-broadcasts fail, and
+    are retried every 10 s, until the next attach.
+  - Re-attaching with the same peer ID keeps everything.
+- **Identity change.** After a panic wipe the mesh comes back with a new peer ID. On the attach
+  that brings the new ID:
+  - the own SOS is abandoned without sending a CANCEL, because receivers would reject a CANCEL
+    that isn't signed by the SOS's origin;
+  - the board is discarded and a fresh, empty board starts under the new ID.
+- **Ticker.** The runtime ticks the board every 30 s to update stale flags and prune old entries.
+- **Responder actions refuse to run while detached.** Acknowledge, claim and resolve return false
+  and change nothing, so the board never records an action that could not be sent.
+- **Early events are lost.** `SosInbox` does not replay, so SOS received before the first attach,
+  or before a new board's collector has subscribed, are not seen by the board.
