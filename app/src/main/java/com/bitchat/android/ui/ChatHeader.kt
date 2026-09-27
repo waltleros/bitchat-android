@@ -777,6 +777,7 @@ private fun MainHeader(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
+                com.jasiri.sos.ui.SosHeaderButton() // JASIRI: SOS entry point
                 if (hasUnreadPrivateMessages.isNotEmpty()) {
                     HeaderIconButton(
                         onClick = { viewModel.openLatestUnreadPrivateChat() },

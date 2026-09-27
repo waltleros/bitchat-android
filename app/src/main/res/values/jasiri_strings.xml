@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <!-- General -->
+    <string name="jasiri_sos_cd_open">Open SOS</string>
+    <string name="jasiri_sos_cd_hold">Hold for 3 seconds to send SOS</string>
+    <string name="jasiri_sos_title">SOS</string>
+    <string name="jasiri_sos_hold_label">HOLD 3s FOR SOS</string>
+    <string name="jasiri_sos_choose_category">What\'s happening?</string>
+
+    <!-- Own SOS status -->
+    <string name="jasiri_sos_active_sent">SOS ACTIVE — sent %1$d times</string>
+    <string name="jasiri_sos_last_sent">last sent %1$s</string>
+    <string name="jasiri_sos_not_sent">SOS NOT SENT — no mesh connection yet. Retrying…</string>
+    <string name="jasiri_sos_cancel_button">I\'m safe — cancel SOS</string>
+    <string name="jasiri_sos_cancel_confirm_title">Cancel your SOS?</string>
+    <string name="jasiri_sos_cancel_confirm_body">Nearby phones will be told you\'re safe.</string>
+    <string name="jasiri_sos_confirm_yes">Yes</string>
+    <string name="jasiri_sos_confirm_no">No</string>
+    <string name="jasiri_sos_cancelling">Cancelling… telling nearby phones you\'re safe</string>
+    <string name="jasiri_sos_cancelled">SOS cancelled</string>
+    <string name="jasiri_sos_expired">SOS expired after 6 hours</string>
+    <string name="jasiri_sos_ok">OK</string>
+
+    <!-- Received list -->
+    <string name="jasiri_sos_nearby_header">Nearby SOS (%1$d)</string>
+    <string name="jasiri_sos_nearby_empty">No SOS received. Nearby alerts will appear here.</string>
+    <string name="jasiri_sos_heard">heard %1$s</string>
+    <string name="jasiri_sos_just_now">just now</string>
+    <string name="jasiri_sos_minutes_ago">%1$d min ago</string>
+    <string name="jasiri_sos_hours_ago">%1$d h ago</string>
+    <string name="jasiri_sos_stale">not heard recently</string>
+    <string name="jasiri_sos_counts">%1$d acknowledged · %2$d responding</string>
+    <string name="jasiri_sos_you_responding">You\'re responding</string>
+    <string name="jasiri_sos_closed_cancelled">Cancelled by sender</string>
+    <string name="jasiri_sos_closed_resolved">Resolved</string>
+
+    <!-- Responder actions -->
+    <string name="jasiri_sos_action_seen">Seen</string>
+    <string name="jasiri_sos_action_claim">I\'m responding</string>
+    <string name="jasiri_sos_action_resolve">Mark resolved</string>
+    <string name="jasiri_sos_resolve_confirm_title">Mark this SOS resolved?</string>
+    <string name="jasiri_sos_not_sent_toast">Not sent — no mesh connection</string>
+
+    <!-- Categories -->
+    <string name="jasiri_sos_cat_general">General</string>
+    <string name="jasiri_sos_cat_medical">Medical</string>
+    <string name="jasiri_sos_cat_trapped">Trapped</string>
+    <string name="jasiri_sos_cat_fire">Fire</string>
+    <string name="jasiri_sos_cat_violence">Violence</string>
+    <string name="jasiri_sos_cat_detained">Detained</string>
+    <string name="jasiri_sos_cat_missing">Missing person</string>
+    <string name="jasiri_sos_cat_other">Other</string>
+</resources>

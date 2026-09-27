@@ -283,3 +283,31 @@ Reference implementation: `app/src/main/java/com/jasiri/sos/SosRuntime.kt` and `
   and change nothing, so the board never records an action that could not be sent.
 - **Early events are lost.** `SosInbox` does not replay, so SOS received before the first attach,
   or before a new board's collector has subscribed, are not seen by the board.
+
+## UI (v1)
+
+Reference implementation: `app/src/main/java/com/jasiri/sos/ui/SosScreen.kt`, with the pure display
+logic in `SosUiLogic.kt`.
+
+- **Header button.** A red "SOS" pill in the main chat header opens the full-screen SOS page.
+  - It is outlined when this phone has no live SOS, and filled red with a slow pulse while the
+    own SOS is `ACTIVE` or `CANCELLING`.
+  - A red badge shows the number of received SOS that are `ACTIVE` and not stale, capped at "9+".
+- **Sending.** The user picks a category (default General) and holds the big red button for 3 s.
+  - Releasing early cancels and sends nothing. Completing the hold vibrates and starts the SOS
+    exactly once.
+  - The body uses default severity 3, the phone's battery level when readable, and no location
+    or people count yet.
+- **While active.** A status card shows how many times the SOS was sent and when it was last sent,
+  or an amber "not sent" warning while every attempt is failing.
+  - Changing the category sends an update of the same SOS.
+  - "I'm safe — cancel SOS" asks for confirmation before cancelling.
+  - Once cancelled or expired, an OK button returns to the idle screen.
+- **Received list.** Each nearby SOS shows its category, the sender's nickname (or the first
+  8 characters of the peer ID), when it was last heard, a "not heard recently" chip when stale,
+  and the acknowledge and responding counts. Closed entries are dimmed.
+  - Actions: **Seen** (acknowledge), **I'm responding** (claim) and **Mark resolved** (resolve,
+    after confirmation). Only the actions valid for this phone are shown.
+  - If an action cannot be sent because the mesh is not attached, a "Not sent — no mesh
+    connection" toast appears and nothing changes.
+- **Strings.** All texts are in `res/values/jasiri_strings.xml`, English only in v1.
