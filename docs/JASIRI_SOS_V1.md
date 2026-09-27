@@ -108,3 +108,37 @@ Otherwise:
 ```text
 0103010203040506070800026ab13bbc
 ```
+
+## Transport (v1)
+
+### Packet
+
+| Field | Value |
+|-------|-------|
+| Packet type | `0x40` (`MessageType.JASIRI_SOS`) |
+| Recipient | Broadcast (`FFFFFFFFFFFFFFFF`) |
+| Payload | The `SosCodec` bytes described above, unchanged |
+| TTL | Normal mesh TTL; each relay decrements it by 1 and a packet with TTL 0 is not relayed |
+
+### Signing and validation
+
+- The sender signs every SOS packet with its Ed25519 signing key, using the same
+  packet signature as other signed mesh types.
+- A receiver drops an SOS packet, and does not relay it, when:
+  - the packet has no signature;
+  - the sender has no verified signing key yet (no verified announce has been received);
+  - the signature does not verify;
+  - the payload does not decode as a valid v1 payload.
+- Valid SOS payloads are published in-process through `com.jasiri.sos.SosInbox`
+  (`app/src/main/java/com/jasiri/sos/SosInbox.kt`).
+
+### Relay
+
+- JASIRI relays a valid SOS unconditionally. It is never dropped by the probabilistic
+  relay reduction used for other traffic in large networks.
+- Stock bitchat Android and iOS clients do not understand type `0x40`. They relay unknown
+  broadcast types as usual without displaying them, so they still carry SOS across the mesh.
+
+### Not yet supported
+
+- SOS is not yet carried over Wi-Fi Aware (MeshCore). This is planned for a later version.

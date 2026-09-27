@@ -616,6 +616,11 @@ class BluetoothMeshService(private val context: Context) : TransportBridgeServic
 
             override fun handleVoiceFrame(routed: RoutedPacket): Boolean =
                 messageHandler.handlePublicVoiceFrame(routed)
+
+            override fun handleJasiriSos(routed: RoutedPacket): Boolean {   // JASIRI
+                val sender = routed.peerID ?: return false
+                return com.jasiri.sos.SosInbox.accept(sender, routed.packet.payload)
+            } // JASIRI
             
             override fun handleLeave(routed: RoutedPacket) {
                 serviceScope.launch { messageHandler.handleLeave(routed) }

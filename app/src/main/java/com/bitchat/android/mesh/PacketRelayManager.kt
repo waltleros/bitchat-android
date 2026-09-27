@@ -140,6 +140,7 @@ class PacketRelayManager(private val myPeerID: String) {
      * Determine if we should relay this packet based on type and network conditions
      */
     private fun shouldRelayPacket(packet: BitchatPacket, fromPeerID: String): Boolean {
+        if (MessageType.fromValue(packet.type) == MessageType.JASIRI_SOS) return true   // JASIRI: SOS always relays, never probabilistically dropped
         // Always relay if TTL is high enough (indicates important message)
         if (packet.ttl >= 4u) {
             Log.d(TAG, "High TTL (${packet.ttl}), relaying")

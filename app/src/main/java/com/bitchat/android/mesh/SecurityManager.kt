@@ -257,8 +257,9 @@ class SecurityManager(private val encryptionService: EncryptionService, private 
                     MessageType.ANNOUNCE,
                     MessageType.MESSAGE,
                     MessageType.FILE_TRANSFER,
-                    MessageType.VOICE_FRAME,
-                    MessageType.LEAVE
+                MessageType.VOICE_FRAME,
+                MessageType.JASIRI_SOS, // JASIRI: SOS requires a verified Ed25519 signature
+                MessageType.LEAVE
                 )) {
                 return true
             }
