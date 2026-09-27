@@ -193,3 +193,69 @@ A phone manages at most one SOS of its own at a time. Reference implementation:
 | SOS lifetime (from start) | 6 h |
 | CANCEL repeats | 3 |
 | Interval between CANCEL repeats | 30 s |
+
+## Receiver behaviour (v1)
+
+Each phone keeps a board of other people's SOS, built from received, signature-verified
+payloads. Reference implementation: `app/src/main/java/com/jasiri/sos/SosBoard.kt`.
+
+The "sender" of a payload below is the verified mesh peer that signed the packet. Payloads that
+appear to come from this phone itself are ignored. The **origin** of an SOS is the peer that sent
+the first SOS payload the board saw for that `sosId`.
+
+### Rules
+
+1. **SOS.**
+   - An unknown `sosId` creates a new `ACTIVE` entry, with the sender as origin.
+   - An SOS for a known `sosId` from anyone other than the origin is ignored.
+   - From the origin, while the entry is `ACTIVE`:
+     - a newer `seq` replaces the body, `seq` and timestamp;
+     - an equal `seq` is a re-broadcast and only refreshes "last heard";
+     - an older `seq` is ignored.
+   - "Newer" uses 16-bit serial arithmetic: `seq` b is newer than a when
+     `(b − a) mod 65536` is in 1..32767, so 65535 → 0 counts as newer.
+   - An SOS for a `CANCELLED` or `RESOLVED` entry is ignored.
+2. **ACK.** Recorded when the entry is `ACTIVE` and the sender is not the origin.
+3. **CLAIM.** Recorded, as both a claim and an acknowledgement, when the entry is `ACTIVE` and
+   the sender is not the origin.
+4. **CANCEL.** Closes the entry as `CANCELLED` only when it is `ACTIVE` and the sender is the origin.
+5. **RESOLVE.** Closes the entry as `RESOLVED` only when it is `ACTIVE` and the sender is the
+   origin or a peer that has already claimed it.
+6. **Unknown `sosId`.** ACK, CLAIM, CANCEL or RESOLVE for an `sosId` the board has not seen
+   an SOS for is dropped.
+
+### Why only the origin can change an SOS
+
+Any mesh peer can sign packets, and `sosId` values are visible to everyone who hears the SOS.
+Without these rules a malicious peer could:
+
+- **Hijack an SOS:** send an SOS with a higher `seq` under someone else's `sosId` and move the
+  location or change the details.
+- **Fake a cancellation:** send a CANCEL (or an unearned RESOLVE) to make responders stop looking.
+
+Binding the SOS to the peer that first sent it, and requiring a prior CLAIM for a responder's
+RESOLVE, prevents both.
+
+### Responder actions
+
+A phone can acknowledge, claim or resolve an `ACTIVE` SOS. Resolving requires that this phone
+has claimed it first. The phone sends a payload with that kind, the same `sosId`, `seq` 0, the
+current time and no body. It updates its own board immediately, whether or not the send succeeds.
+
+### Staleness and retention (defaults)
+
+| Rule | Default |
+|------|---------|
+| An `ACTIVE` entry is marked stale when no SOS payload was heard for | 15 min |
+| An `ACTIVE` entry is removed when no SOS payload was heard for | 6 h |
+| A `CANCELLED` or `RESOLVED` entry is removed after its state change by | 1 h |
+| Maximum entries (the entry heard least recently is dropped first) | 500 |
+
+Entries are listed with active, non-stale SOS first, then stale ones, then closed ones. Within
+each group the highest severity comes first, then the most recently heard.
+
+### Limitations
+
+- Responses that arrive before the SOS they refer to are dropped (rule 6). They are not buffered.
+- An entry that has been removed is forgotten. If a late re-broadcast of a removed SOS arrives,
+  it creates a new `ACTIVE` entry. This includes a cancelled SOS whose 1-hour retention has passed.
