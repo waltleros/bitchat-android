@@ -118,12 +118,12 @@ object MeshServiceHolder {
         val existing = unifiedMeshService
         if (existing != null) {
             existing.refreshDelegates()
-            com.jasiri.sos.JasiriSos.onMeshReady(existing) // JASIRI: (re)attach SOS runtime to the live mesh
+            com.jasiri.JasiriHooks.onMeshReady(existing) // JASIRI: (re)attach JASIRI runtimes to the live mesh
             return existing
         }
         val created = UnifiedMeshService(context.applicationContext, bluetooth)
         unifiedMeshService = created
-        com.jasiri.sos.JasiriSos.onMeshReady(created) // JASIRI: attach SOS runtime to the new mesh
+        com.jasiri.JasiriHooks.onMeshReady(created) // JASIRI: attach JASIRI runtimes to the new mesh
         android.util.Log.i(TAG, "Created new UnifiedMeshService")
         return created
     }
@@ -137,7 +137,7 @@ object MeshServiceHolder {
 
     @Synchronized
     fun clear() {
-        try { com.jasiri.sos.JasiriSos.onMeshCleared() } catch (_: Exception) { } // JASIRI: detach SOS runtime from the dropped mesh
+        try { com.jasiri.JasiriHooks.onMeshCleared() } catch (_: Exception) { } // JASIRI: detach JASIRI runtimes from the dropped mesh
         android.util.Log.d(TAG, "Clearing BluetoothMeshService from holder")
         try { sharedGossipSyncManager?.clear() } catch (_: Exception) { }
         try { sharedGossipSyncManager?.stop() } catch (_: Exception) { }

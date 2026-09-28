@@ -192,3 +192,28 @@ Stock bitchat phones relay packet types they do not understand, but do not displ
 
 - Quick messages are not yet carried over Wi-Fi Aware (MeshCore).
 - Storage and the UI are covered by later tickets.
+
+## Sender and receiver behaviour (v1)
+
+Reference implementation: `app/src/main/java/com/jasiri/quick/QuickRuntime.kt` and
+`JasiriQuick.kt`.
+
+- **Undo, then one send.** A tapped preset is queued as PENDING for 5 seconds and can be undone
+  during that time. After that it is sent once, with a fresh `msgId` and the send time as its
+  timestamp. There is no automatic re-broadcast. Several messages can be pending at once, each
+  with its own timer.
+- **Retry.** A NOT_SENT message can be retried by hand. The retry sends the same bytes, so the
+  same `msgId`, and receivers that already have it treat it as a duplicate.
+- **Own limit.** A phone queues at most 5 messages per 60 seconds (sliding window), which stays
+  under the receivers' flood limit of 6. An undone message frees its slot; a retry uses one.
+- **NOT_SENT** means no BLE peer was in range when the send was attempted (`peerGatedTransport`),
+  or the mesh was not attached.
+- **Feed.** Received and own messages are kept together, newest first, for 6 hours and at most
+  200 entries. Pending messages are never pruned. Received messages from this phone's own peer ID
+  are ignored, and each (sender, `msgId`) appears once. The unread count covers received messages
+  added since the feed was last marked read.
+- **Identity change.** After a panic wipe the mesh comes back with a new peer ID. On that attach,
+  pending sends are cancelled, the feed is cleared and the unread count is reset. Detaching (the
+  mesh going away) only drops the transport.
+- **Single entry point.** Upstream `MeshServiceHolder` calls `com.jasiri.JasiriHooks`, which
+  attaches and detaches every JASIRI runtime (SOS and quick messages).
