@@ -1,10 +1,15 @@
 package com.jasiri.quick.ui
 
+import com.bitchat.android.geohash.ChannelID
+import com.bitchat.android.geohash.GeohashChannel
+import com.bitchat.android.geohash.GeohashChannelLevel
 import com.jasiri.quick.QuickFeedEntry
 import com.jasiri.quick.QuickLocation
 import com.jasiri.quick.QuickSendStatus
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class QuickUiLogicTest {
@@ -98,5 +103,18 @@ class QuickUiLogicTest {
             entry("me:nodeadline", mine = true, status = QuickSendStatus.PENDING, deadline = null)
         )
         assertNull(nextPending(feed))
+    }
+
+    @Test
+    fun `quick button visible on the mesh channel`() {
+        assertTrue(quickButtonVisible(ChannelID.Mesh))
+    }
+
+    @Test
+    fun `quick button hidden in a location channel`() {
+        val location = ChannelID.Location(
+            GeohashChannel(level = GeohashChannelLevel.entries.first(), geohash = "u4pru")
+        )
+        assertFalse(quickButtonVisible(location))
     }
 }

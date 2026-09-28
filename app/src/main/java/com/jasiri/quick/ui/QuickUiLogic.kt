@@ -61,6 +61,10 @@ fun SosLocation.toQuickLocation(): QuickLocation = QuickLocation(
     approximate = approximate
 )
 
+/** The quick button is only for the Bluetooth mesh: hidden while a location (geohash) channel is selected. */
+fun quickButtonVisible(selected: com.bitchat.android.geohash.ChannelID): Boolean =
+    selected !is com.bitchat.android.geohash.ChannelID.Location
+
 /** The pending own entry with the EARLIEST undo deadline, or null. Drives the undo bar. */
 fun nextPending(feed: List<QuickFeedEntry>): QuickFeedEntry? =
     feed.filter { it.mine && it.status == QuickSendStatus.PENDING && it.undoDeadlineMillis != null }

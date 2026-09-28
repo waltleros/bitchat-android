@@ -227,6 +227,9 @@ Reference implementation: `app/src/main/java/com/jasiri/quick/ui/QuickGrid.kt` a
   private chats, not in named channels, and not while a voice note is recording. It is the
   single upstream edit (`InputComponents.kt`, marked `// JASIRI:`). Quick messages always go
   over the BLE mesh, whatever the chat view.
+- **Hidden in location (geohash) channels,** since those go over the internet rather than the
+  Bluetooth mesh. Tapping a warning alert while in one switches back to the mesh chat and opens
+  the sheet.
 - **One tap, then undo.** Tapping a tile queues the message and shows an amber bar for 5 seconds
   ("Sending "…" in N s" with UNDO). The sheet stays open so the bar stays visible. If the phone
   is over its own limit, a toast says so and nothing is queued.

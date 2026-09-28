@@ -67,6 +67,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bitchat.android.R
+import com.bitchat.android.geohash.ChannelID
+import com.bitchat.android.geohash.LocationChannelManager
 import com.bitchat.android.service.MeshServiceHolder
 import com.bitchat.android.ui.ComposerActionSurface
 import com.bitchat.android.ui.ComposerIconSize
@@ -95,6 +97,36 @@ private val QuickAmber = Color(0xFFFFA000)
 /** Composer button that opens the quick message sheet. Public mesh chat only (decided by the caller). */
 @Composable
 fun QuickGridButton(modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val locationManager = remember {
+        try {
+            LocationChannelManager.getInstance(context)
+        } catch (_: Exception) {
+            null
+        }
+    }
+    val selectedChannel: ChannelID = if (locationManager != null) {
+        val selected by locationManager.selectedChannel.collectAsStateWithLifecycle()
+        selected
+    } else {
+        ChannelID.Mesh
+    }
+    val openRequested by JasiriAlerts.openQuickRequest.collectAsStateWithLifecycle()
+    var switchFailed by remember { mutableStateOf(false) }
+
+    if (!quickButtonVisible(selectedChannel) && !switchFailed) {
+        LaunchedEffect(openRequested) {
+            if (openRequested) {
+                try {
+                    locationManager?.select(ChannelID.Mesh)
+                } catch (_: Exception) {
+                    switchFailed = true
+                }
+            }
+        }
+        return
+    }
+
     val runtime = remember { JasiriQuick.runtime }
     val unread by runtime.unreadCount.collectAsStateWithLifecycle()
     var open by rememberSaveable { mutableStateOf(false) }
@@ -102,7 +134,6 @@ fun QuickGridButton(modifier: Modifier = Modifier) {
     val description = stringResource(R.string.jasiri_quick_cd_open)
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    val openRequested by JasiriAlerts.openQuickRequest.collectAsStateWithLifecycle()
 
     LaunchedEffect(openRequested) {
         if (openRequested) {
