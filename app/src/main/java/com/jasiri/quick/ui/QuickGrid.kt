@@ -7,6 +7,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -365,18 +366,40 @@ private fun IncludeLocationRow(checked: Boolean, onCheckedChange: (Boolean) -> U
 
 @Composable
 private fun QuickTile(preset: QuickPreset, text: TileText, onTap: () -> Unit) {
-    val (background, content) = when (preset.tone) {
-        QuickTone.INFO -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
-        QuickTone.NEED -> QuickAmber to Color.Black
-        QuickTone.WARNING -> QuickRed to Color.White
+    val onSurface = MaterialTheme.colorScheme.onSurface
+    val background: Color
+    val primaryColor: Color
+    val secondaryColor: Color
+    val borderColor: Color?
+    when (preset.tone) {
+        QuickTone.INFO -> {
+            background = MaterialTheme.colorScheme.surfaceVariant
+            primaryColor = onSurface
+            secondaryColor = onSurface.copy(alpha = 0.8f)
+            borderColor = onSurface.copy(alpha = 0.25f)
+        }
+        QuickTone.NEED -> {
+            background = QuickAmber
+            primaryColor = Color.Black
+            secondaryColor = Color.Black
+            borderColor = null
+        }
+        QuickTone.WARNING -> {
+            background = QuickRed
+            primaryColor = Color.White
+            secondaryColor = Color.White
+            borderColor = null
+        }
     }
+    val shape = RoundedCornerShape(16.dp)
     val description = listOfNotNull(text.primary, text.secondary).joinToString(". ")
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 88.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .clip(shape)
             .background(background)
+            .then(if (borderColor != null) Modifier.border(1.dp, borderColor, shape) else Modifier)
             .clickable(role = Role.Button, onClick = onTap)
             .clearAndSetSemantics { contentDescription = description }
             .padding(12.dp),
@@ -385,7 +408,7 @@ private fun QuickTile(preset: QuickPreset, text: TileText, onTap: () -> Unit) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = text.primary,
-                color = content,
+                color = primaryColor,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center
@@ -393,7 +416,7 @@ private fun QuickTile(preset: QuickPreset, text: TileText, onTap: () -> Unit) {
             text.secondary?.let {
                 Text(
                     text = it,
-                    color = content,
+                    color = secondaryColor,
                     fontSize = 13.sp,
                     textAlign = TextAlign.Center
                 )

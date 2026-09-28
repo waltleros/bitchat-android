@@ -42,7 +42,7 @@
     <string name="jasiri_sos_action_claim">I\'m responding</string>
     <string name="jasiri_sos_action_resolve">Mark resolved</string>
     <string name="jasiri_sos_resolve_confirm_title">Mark this SOS resolved?</string>
-    <string name="jasiri_sos_not_sent_toast">Not sent — no mesh connection</string>
+    <string name="jasiri_sos_not_sent_toast">Not sent — no phones in range</string>
 
     <!-- Categories -->
     <string name="jasiri_sos_cat_general">General</string>

@@ -140,7 +140,8 @@
   <string name="toast_failed_to_save_image">圖片儲存失敗</string>
   <string name="cd_image_index_of">圖片 %1$d／%2$d</string>
   <string name="cd_pick_file">選擇檔案</string>
-  <string name="about_tagline">具端對端加密的去中心化 mesh 傳訊</string>
+  <!-- JASIRI: tagline -->
+  <string name="about_tagline">bitchat for emergencies</string>
   <string name="about_offline_mesh_title">離線 Mesh 聊天</string>
   <string name="about_offline_mesh_desc">透過藍牙 LE 直接通訊，無需網際網路或伺服器。訊息會透過附近的裝置中繼以擴大範圍。</string>
   <string name="about_online_geohash_title">線上地理雜湊頻道</string>

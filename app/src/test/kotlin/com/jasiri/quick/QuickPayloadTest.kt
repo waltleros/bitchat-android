@@ -66,7 +66,7 @@ class QuickPayloadTest {
         val decoded = QuickCodec.decode(QuickCodec.encode(large))
         assertEquals(65535, decoded!!.location!!.accuracyMeters)
 
-        assertEncodeRejects(golden2.copy(location = golden2.location!!.copy(accuracyMeters = -1)))
+        assertEncodeRejects(golden2.copy(location = golden2.location.copy(accuracyMeters = -1)))
     }
 
     @Test

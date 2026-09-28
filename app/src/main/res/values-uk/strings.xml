@@ -125,7 +125,8 @@
     <string name="toast_failed_to_save_image">Не вдалося зберегти зображення</string>
     <string name="cd_image_index_of">Зображення %1$d з %2$d</string>
     <string name="cd_pick_file">Вибрати файл</string>
-    <string name="about_tagline">децентралізований mesh-обмін повідомленнями з наскрізним шифруванням</string>
+    <!-- JASIRI: tagline -->
+    <string name="about_tagline">bitchat for emergencies</string>
     <string name="about_offline_mesh_title">Офлайн Mesh-чат</string>
     <string name="about_offline_mesh_desc">Спілкуйтеся напряму через Bluetooth LE без інтернету чи серверів. Повідомлення передаються через пристрої поруч, щоб розширити радіус дії.</string>
     <string name="about_online_geohash_title">Онлайн-канали за геохешем</string>

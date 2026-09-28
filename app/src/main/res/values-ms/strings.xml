@@ -100,7 +100,8 @@
   <string name="cd_pick_file">Pilih fail</string>
 
   <!-- About sheet -->
-  <string name="about_tagline">pemesejan mesh terdesentralisasi dengan penyulitan hujung-ke-hujung</string>
+  <!-- JASIRI: tagline -->
+  <string name="about_tagline">bitchat for emergencies</string>
   <string name="about_offline_mesh_title">Sembang Mesh Luar Talian</string>
   <string name="about_offline_mesh_desc">Berkomunikasi terus melalui Bluetooth LE tanpa internet atau pelayan. Mesej digeganti melalui peranti berdekatan untuk melanjutkan jarak.</string>
   <string name="about_online_geohash_title">Saluran Geohash Dalam Talian</string>

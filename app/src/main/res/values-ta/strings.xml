@@ -132,7 +132,8 @@
   <string name="toast_failed_to_save_image">படத்தைச் சேமிக்க முடியவில்லை</string>
   <string name="cd_image_index_of">படம் %1$d / %2$d</string>
   <string name="cd_pick_file">கோப்பைத் தேர்ந்தெடு</string>
-  <string name="about_tagline">எண்ட்-டு-எண்ட் என்க்ரிப்ஷனுடன் கூடிய பரவலாக்கப்பட்ட மெஷ் செய்தியிடல்</string>
+  <!-- JASIRI: tagline -->
+  <string name="about_tagline">bitchat for emergencies</string>
   <string name="about_offline_mesh_title">ஆஃப்லைன் மெஷ் அரட்டை</string>
   <string name="about_offline_mesh_desc">இணையம் அல்லது சர்வர்கள் இல்லாமல் Bluetooth LE வழியாக நேரடியாக தொடர்பு கொள்ளுங்கள். வரம்பை நீட்டிக்க செய்திகள் அருகிலுள்ள சாதனங்கள் வழியாக அனுப்பப்படுகின்றன.</string>
   <string name="about_online_geohash_title">ஆன்லைன் ஜியோஹாஷ் சேனல்கள்</string>

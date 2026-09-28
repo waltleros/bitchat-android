@@ -314,8 +314,8 @@ logic in `SosUiLogic.kt`.
   and the acknowledge and responding counts. Closed entries are dimmed.
   - Actions: **Seen** (acknowledge), **I'm responding** (claim) and **Mark resolved** (resolve,
     after confirmation). Only the actions valid for this phone are shown.
-  - If an action cannot be sent because the mesh is not attached, a "Not sent — no mesh
-    connection" toast appears and nothing changes.
+  - If an action cannot be sent, because the mesh is not attached or because no phone is in
+    range, a "Not sent — no phones in range" toast appears and nothing changes.
 - **Strings.** All texts are in `res/values/jasiri_strings.xml`, English only in v1.
 
 ## Location (v1)

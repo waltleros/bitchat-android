@@ -170,6 +170,7 @@ class SosLocationSource(context: Context) {
                         override fun onLocationChanged(location: Location) {
                             onResult(providerName, location)
                         }
+                        @Deprecated("Required by LocationListener on API < 29")
                         override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
                         override fun onProviderEnabled(provider: String) {}
                         override fun onProviderDisabled(provider: String) {

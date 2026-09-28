@@ -142,7 +142,8 @@
   <string name="toast_failed_to_save_image">שמירת התמונה נכשלה</string>
   <string name="cd_image_index_of">תמונה %1$d מתוך %2$d</string>
   <string name="cd_pick_file">בחר קובץ</string>
-  <string name="about_tagline">העברת הודעות מבוזרת ברשת Mesh עם הצפנה מקצה לקצה</string>
+  <!-- JASIRI: tagline -->
+  <string name="about_tagline">bitchat for emergencies</string>
   <string name="about_offline_mesh_title">צ׳אט Mesh לא מקוון</string>
   <string name="about_offline_mesh_desc">תקשר ישירות באמצעות Bluetooth LE ללא אינטרנט או שרתים. הודעות מועברות דרך מכשירים קרובים כדי להאריך את הטווח.</string>
   <string name="about_online_geohash_title">ערוצי geohash מקוונים</string>
