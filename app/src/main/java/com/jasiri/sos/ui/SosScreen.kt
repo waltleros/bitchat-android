@@ -106,6 +106,7 @@ import com.jasiri.sos.SosEntry
 import com.jasiri.sos.SosEntryState
 import com.jasiri.sos.SosLocation
 import com.jasiri.sos.SosRuntime
+import com.jasiri.sos.location.SosLocationOptOut
 import com.jasiri.sos.location.SosLocationSource
 import com.jasiri.sos.location.toSosLocationOrNull
 import kotlinx.coroutines.delay
@@ -329,7 +330,7 @@ private fun SosPageContent(runtime: SosRuntime, onDismiss: () -> Unit) {
         when {
             !shareOn -> {
                 locStatus = LocStatus.Off
-                own.status.value.sosId?.let { locationOptOutSosIds.add(it) }
+                own.status.value.sosId?.let { SosLocationOptOut.add(it) }
             }
             permitted -> {
                 hasPermission = true
@@ -345,7 +346,7 @@ private fun SosPageContent(runtime: SosRuntime, onDismiss: () -> Unit) {
         val active = current.state == OwnSosState.ACTIVE
         val sosId = current.sosId
         if (active && sosId != null) {
-            if (on) locationOptOutSosIds.remove(sosId) else locationOptOutSosIds.add(sosId)
+            if (on) SosLocationOptOut.remove(sosId) else SosLocationOptOut.add(sosId)
         }
         if (!on) {
             source.cancel()
@@ -371,9 +372,12 @@ private fun SosPageContent(runtime: SosRuntime, onDismiss: () -> Unit) {
     LaunchedEffect(activeSosId, shareOn, hasPermission) {
         if (activeSosId == null || !shareOn || !hasPermission) return@LaunchedEffect
         if (locStatus != LocStatus.Getting) fetchAndUpdate()
-        while (true) {
-            delay(LOCATION_REFRESH_MILLIS)
-            fetchAndUpdate()
+    }
+
+    val sharedLocation = status.body?.location
+    LaunchedEffect(sharedLocation) {
+        if (shareOn && sharedLocation != null && locStatus is LocStatus.Shared) {
+            locStatus = LocStatus.Shared(sharedLocation.accuracyMeters)
         }
     }
 
@@ -939,23 +943,14 @@ private fun fixAgeText(h: HeardAgo): String = when (h) {
     is HeardAgo.Hours -> stringResource(R.string.jasiri_sos_age_hours, h.n)
 }
 
-private const val LOCATION_REFRESH_MILLIS = 2 * 60_000L
-
 private val LOCATION_PERMISSIONS = arrayOf(
     Manifest.permission.ACCESS_FINE_LOCATION,
     Manifest.permission.ACCESS_COARSE_LOCATION
 )
 
-/**
- * SOS ids for which the person switched location sharing off. Kept for the process lifetime, which
- * is also the lifetime of the own SOS, so reopening the page does not silently turn sharing back on.
- * Main thread only.
- */
-private val locationOptOutSosIds = mutableSetOf<Long>()
-
 private fun initialShareLocation(status: OwnSosStatus): Boolean {
     val sosId = status.sosId
-    return status.state != OwnSosState.ACTIVE || sosId == null || sosId !in locationOptOutSosIds
+    return status.state != OwnSosState.ACTIVE || sosId == null || !SosLocationOptOut.contains(sosId)
 }
 
 private fun initialLocStatus(status: OwnSosStatus, shareOn: Boolean, hasPermission: Boolean): LocStatus = when {

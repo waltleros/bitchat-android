@@ -331,17 +331,31 @@ wire type), `location/SosLocationSource.kt` (plain `LocationManager`) and `ui/So
 - **The SOS is never delayed.** It fires immediately with the best last-known fix (or none), then
   a fresh fix is requested and sent as an update of the same SOS. If the permission is missing,
   the SOS fires first and the permission dialog follows.
-- **Refresh.** While the SOS page is open and the SOS is active, the location is refreshed every
-  2 minutes.
-- **Known limit.** With the page closed there is no refresh. `fixAgeSeconds` in re-broadcasts is
-  the fix age at the last update, not at re-broadcast time, so a receiver sees the fix as younger
-  than it is.
+- **Refresh.** While the SOS is active, the location is refreshed every 2 minutes, whether or not
+  the SOS page is open (see "Location while the SOS page is closed").
+- **Known limit.** `fixAgeSeconds` in re-broadcasts is the fix age at the last update, not at
+  re-broadcast time, so a receiver sees the fix as younger than it is.
 - **Separate from location channels.** SOS location does not use the upstream geohash providers
   or their privacy gate (`LiveLocationPrivacyGate`); it is its own explicit per-SOS choice.
 - **Responders.** A received SOS with a location shows its coordinates, accuracy and fix age, and
   an "Open in map" button that opens a `geo:<lat>,<lon>?q=<lat>,<lon>(SOS)` intent in any
   installed map app.
 - **Privacy.** An SOS is signed but not encrypted: its location is readable by anyone in range.
+
+## Location while the SOS page is closed (v1)
+
+Reference implementation: `app/src/main/java/com/jasiri/sos/location/SosLocationKeeper.kt`, with
+the rules in `SosLocationPolicy.kt`. Started from `BitchatApplication`.
+
+- **Background refresh.** While your SOS is active and location sharing is on, the phone refreshes
+  the location every 2 minutes in the background, through the mesh foreground service. The first
+  refresh comes 2 minutes after firing; the SOS page still fetches immediately on fire and when
+  sharing is turned on.
+- **Never cleared by a failure.** A failed GPS attempt keeps the last location; it is never cleared.
+  A fresh fix replaces it only if it is newer by more than 5 s, or the same age and more accurate.
+- **Off means off.** Turning "Share my location" off stops the refreshes for that SOS.
+- **No prompts.** The keeper never asks for permission. Without permission, or with location
+  turned off, it simply skips.
 
 ## Alerts (v1)
 

@@ -16,6 +16,7 @@ class BitchatApplication : Application() {
         // Start the single process-wide power policy before transport components are constructed.
         com.bitchat.android.mesh.PowerManager.getInstance(this).start()
         try { com.jasiri.alerts.JasiriAlerts.start(this) } catch (_: Exception) { } // JASIRI: SOS + danger-warning alerts
+        try { com.jasiri.sos.location.SosLocationKeeper.start(this) } catch (_: Exception) { } // JASIRI: keep own SOS location fresh in background
 
         // Initialize Tor first so any early network goes over Tor
         try {
