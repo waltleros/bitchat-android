@@ -621,6 +621,11 @@ class BluetoothMeshService(private val context: Context) : TransportBridgeServic
                 val sender = routed.peerID ?: return false
                 return com.jasiri.sos.SosInbox.accept(sender, routed.packet.payload)
             } // JASIRI
+
+            override fun handleJasiriQuick(routed: RoutedPacket): Boolean {   // JASIRI
+                val sender = routed.peerID ?: return false
+                return com.jasiri.quick.QuickInbox.accept(sender, routed.packet.payload)
+            } // JASIRI
             
             override fun handleLeave(routed: RoutedPacket) {
                 serviceScope.launch { messageHandler.handleLeave(routed) }
@@ -1007,6 +1012,16 @@ class BluetoothMeshService(private val context: Context) : TransportBridgeServic
         serviceScope.launch {
             try { broadcastRoutedPacket(RoutedPacket(signPacketBeforeBroadcast(packet))) }
             catch (e: Exception) { Log.w(TAG, "JASIRI SOS send failed: ${e.message}") }
+        }
+        return true
+    } // JASIRI
+
+    fun sendJasiriQuick(payload: ByteArray): Boolean {   // JASIRI
+        if (com.jasiri.quick.QuickCodec.decode(payload) == null) return false        // never broadcast an invalid quick message
+        val packet = JasiriQuickPackets.buildBroadcast(hexStringToByteArray(myPeerID), payload, System.currentTimeMillis())
+        serviceScope.launch {
+            try { broadcastRoutedPacket(RoutedPacket(signPacketBeforeBroadcast(packet))) }
+            catch (e: Exception) { Log.w(TAG, "JASIRI quick send failed: ${e.message}") }
         }
         return true
     } // JASIRI

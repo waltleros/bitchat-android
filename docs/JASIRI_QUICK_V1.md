@@ -146,9 +146,49 @@ of its language setting.
 A receiver that does not know a `presetId` (a newer built-in preset or a mission pack it doesn't
 have) still decodes the payload and shows "Unknown preset #N — update JASIRI", where N is the id.
 
-## Not yet specified
+## Transport (v1)
 
-- Transport, signing, relay, rate limiting and the UI are covered by later tickets.
-- Stock bitchat phones will not display quick messages.
-- Transport will follow the SOS approach (a new packet type), so phones that don't understand
-  the type still relay it.
+Reference implementation: `JasiriQuickPackets.kt` and the `// JASIRI` lines in
+`BluetoothMeshService.kt` (send and receive), `PacketProcessor.kt` and `SecurityManager.kt`;
+the flood limit is in `app/src/main/java/com/jasiri/quick/QuickInbox.kt`.
+
+### Packet
+
+A quick message travels in a mesh packet of type `0x41` (`JASIRI_QUICK`), broadcast to all
+peers with the default mesh TTL. The packet payload is the quick payload, unchanged. The sender
+refuses locally to broadcast a payload that does not decode as a valid v1 payload.
+
+### Signing
+
+Every `JASIRI_QUICK` packet must carry an Ed25519 signature from the sender's signing key, as
+learned from a verified announcement. Unsigned packets, packets signed by a different key, and
+packets from peers with no known signing key are dropped.
+
+### Relay
+
+Quick messages follow bitchat's normal relay policy. Unlike SOS (`0x40`), there is **no forced
+relay**, so a flood cannot be amplified across the whole mesh. A packet is relayed only if the
+receiver accepted it: invalid, duplicate or rate-limited messages are dropped and not relayed.
+
+### Flood limit
+
+Each receiver applies, in this order:
+
+1. A payload that does not decode is rejected (invalid).
+2. A message with the same sender and `msgId` as one seen in the last **10 minutes** is rejected
+   (duplicate). The first-seen time is not refreshed by repeats.
+3. A sender that already has **6** accepted messages in the last **60 seconds** (sliding window)
+   is rejected (rate limited).
+4. Otherwise the message is accepted and counts toward the sender's rate.
+
+Duplicates and rate-limited messages do not count toward the rate. Tracking is bounded
+(1,000 senders, 5,000 message ids; least recently used entries are evicted first).
+
+### Stock bitchat
+
+Stock bitchat phones relay packet types they do not understand, but do not display quick messages.
+
+### Not yet supported
+
+- Quick messages are not yet carried over Wi-Fi Aware (MeshCore).
+- Storage and the UI are covered by later tickets.

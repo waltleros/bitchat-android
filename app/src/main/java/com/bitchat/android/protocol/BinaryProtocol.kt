@@ -20,7 +20,8 @@ enum class MessageType(val value: UByte) {
     REQUEST_SYNC(0x21u), // GCS-based sync request
     FILE_TRANSFER(0x22u), // New: File transfer packet (BLE voice notes, etc.)
     VOICE_FRAME(0x29u), // Ephemeral live push-to-talk frame; never added to gossip sync
-    JASIRI_SOS(0x40u); // JASIRI: emergency SOS broadcast, payload = com.jasiri.sos.SosCodec v1
+    JASIRI_SOS(0x40u), // JASIRI: emergency SOS broadcast, payload = com.jasiri.sos.SosCodec v1
+    JASIRI_QUICK(0x41u); // JASIRI: preset quick message, payload = com.jasiri.quick.QuickCodec v1
 
     companion object {
         fun fromValue(value: UByte): MessageType? {

@@ -23,6 +23,7 @@ interface MeshService {
     fun sendFilePrivate(recipientPeerID: String, file: BitchatFilePacket)
     fun sendVoiceFrame(recipientPeerID: String?, payload: ByteArray)
     fun sendJasiriSos(payload: ByteArray): Boolean = false   // JASIRI: returns true if queued for broadcast
+    fun sendJasiriQuick(payload: ByteArray): Boolean = false   // JASIRI: true if queued for broadcast
     fun prepareFilePrivate(
         recipientPeerID: String,
         file: BitchatFilePacket,

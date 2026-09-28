@@ -187,6 +187,9 @@ class UnifiedMeshService(
     override fun sendJasiriSos(payload: ByteArray): Boolean =   // JASIRI
         if (isBleEnabled()) bluetooth.sendJasiriSos(payload) else false
 
+    override fun sendJasiriQuick(payload: ByteArray): Boolean =   // JASIRI
+        if (isBleEnabled()) bluetooth.sendJasiriQuick(payload) else false
+
     override fun prepareFilePrivate(
         recipientPeerID: String,
         file: BitchatFilePacket,

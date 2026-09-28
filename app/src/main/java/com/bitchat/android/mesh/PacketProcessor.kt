@@ -138,6 +138,7 @@ class PacketProcessor(private val myPeerID: String) {
             MessageType.FILE_TRANSFER -> handleMessage(routed) // treat same routing path; parsing happens in handler
             MessageType.VOICE_FRAME -> validPacket = delegate?.handleVoiceFrame(routed) ?: false
             MessageType.JASIRI_SOS -> validPacket = delegate?.handleJasiriSos(routed) ?: false // JASIRI: invalid SOS is dropped, not relayed
+            MessageType.JASIRI_QUICK -> validPacket = delegate?.handleJasiriQuick(routed) ?: false // JASIRI: invalid, duplicate or rate-limited quick messages are dropped, not relayed
             MessageType.LEAVE -> handleLeave(routed)
             MessageType.FRAGMENT -> handleFragment(routed)
             MessageType.REQUEST_SYNC -> handleRequestSync(routed)
@@ -300,6 +301,7 @@ interface PacketProcessorDelegate {
     fun handleMessage(routed: RoutedPacket)
     fun handleVoiceFrame(routed: RoutedPacket): Boolean = false
     fun handleJasiriSos(routed: RoutedPacket): Boolean = false   // JASIRI
+    fun handleJasiriQuick(routed: RoutedPacket): Boolean = false   // JASIRI
     fun handleLeave(routed: RoutedPacket)
     fun handleFragment(packet: BitchatPacket): BitchatPacket?
     fun handleRequestSync(routed: RoutedPacket)
