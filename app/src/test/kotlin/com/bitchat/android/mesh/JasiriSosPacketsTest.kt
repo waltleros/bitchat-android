@@ -17,6 +17,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -115,6 +116,29 @@ class JasiriSosPacketsTest {
         assertThrows(IllegalArgumentException::class.java) {
             JasiriSosPackets.buildBroadcast(SENDER_ID, ByteArray(0), TIMESTAMP_MS)
         }
+    }
+
+    @Test
+    fun `signedOrNull rejects a packet without a signature`() {
+        val packet = JasiriSosPackets.buildBroadcast(SENDER_ID, SOS_GOLDEN, TIMESTAMP_MS)
+
+        assertNull(JasiriSosPackets.signedOrNull(packet.copy(signature = null)))
+    }
+
+    @Test
+    fun `signedOrNull rejects a packet with an empty signature`() {
+        val packet = JasiriSosPackets.buildBroadcast(SENDER_ID, SOS_GOLDEN, TIMESTAMP_MS)
+
+        assertNull(JasiriSosPackets.signedOrNull(packet.copy(signature = ByteArray(0))))
+    }
+
+    @Test
+    fun `signedOrNull returns a properly signed packet unchanged`() {
+        val keys = SenderKeys.generate()
+        val packet = JasiriSosPackets.buildBroadcast(SENDER_ID, SOS_GOLDEN, System.currentTimeMillis())
+        val signed = packet.copy(signature = keys.sign(packet.toBinaryDataForSigning()!!))
+
+        assertSame(signed, JasiriSosPackets.signedOrNull(signed))
     }
 
     /** A fresh manager per check, so duplicate detection never masks a signature decision. */

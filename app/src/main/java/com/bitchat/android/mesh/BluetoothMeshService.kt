@@ -1009,8 +1009,13 @@ class BluetoothMeshService(private val context: Context) : TransportBridgeServic
     fun sendJasiriSos(payload: ByteArray): Boolean {   // JASIRI
         if (com.jasiri.sos.SosCodec.decode(payload) == null) return false        // never broadcast an invalid SOS
         val packet = JasiriSosPackets.buildBroadcast(hexStringToByteArray(myPeerID), payload, System.currentTimeMillis())
+        val signed = try { JasiriSosPackets.signedOrNull(signPacketBeforeBroadcast(packet)) } catch (e: Exception) { null }
+        if (signed == null) {
+            Log.w(TAG, "JASIRI SOS not sent: signing failed")   // JASIRI: never broadcast unsigned
+            return false
+        }
         serviceScope.launch {
-            try { broadcastRoutedPacket(RoutedPacket(signPacketBeforeBroadcast(packet))) }
+            try { broadcastRoutedPacket(RoutedPacket(signed)) }
             catch (e: Exception) { Log.w(TAG, "JASIRI SOS send failed: ${e.message}") }
         }
         return true
@@ -1019,8 +1024,13 @@ class BluetoothMeshService(private val context: Context) : TransportBridgeServic
     fun sendJasiriQuick(payload: ByteArray): Boolean {   // JASIRI
         if (com.jasiri.quick.QuickCodec.decode(payload) == null) return false        // never broadcast an invalid quick message
         val packet = JasiriQuickPackets.buildBroadcast(hexStringToByteArray(myPeerID), payload, System.currentTimeMillis())
+        val signed = try { JasiriSosPackets.signedOrNull(signPacketBeforeBroadcast(packet)) } catch (e: Exception) { null }
+        if (signed == null) {
+            Log.w(TAG, "JASIRI quick not sent: signing failed")   // JASIRI: never broadcast unsigned
+            return false
+        }
         serviceScope.launch {
-            try { broadcastRoutedPacket(RoutedPacket(signPacketBeforeBroadcast(packet))) }
+            try { broadcastRoutedPacket(RoutedPacket(signed)) }
             catch (e: Exception) { Log.w(TAG, "JASIRI quick send failed: ${e.message}") }
         }
         return true

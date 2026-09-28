@@ -181,6 +181,9 @@ A phone manages at most one SOS of its own at a time. Reference implementation:
    increments the success count, resets the consecutive-failure count and clears the "not sent"
    warning. A refused or failed hand-off increments the consecutive-failure count and sets the
    warning. "Successful" means queued for broadcast, not delivered to anyone.
+7. **Signed or not sent.** The packet is signed before the send call returns. If signing fails,
+   the packet is not broadcast and the send reports failure (NOT SENT), because receivers drop
+   unsigned JASIRI packets.
 
 ### Default timings
 

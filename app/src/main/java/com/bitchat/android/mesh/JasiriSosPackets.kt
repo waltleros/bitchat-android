@@ -25,4 +25,11 @@ object JasiriSosPackets {   // JASIRI
             route = null
         )
     }
+
+    /**
+     * JASIRI packets must never go out unsigned: receivers drop them. Returns [packet] only if it
+     * carries a non-empty signature, else null. Used for both JASIRI_SOS and JASIRI_QUICK.
+     */
+    fun signedOrNull(packet: BitchatPacket): BitchatPacket? =
+        packet.takeIf { (it.signature?.size ?: 0) > 0 }
 }

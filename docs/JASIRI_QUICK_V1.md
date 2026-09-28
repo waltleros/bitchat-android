@@ -202,6 +202,9 @@ Reference implementation: `app/src/main/java/com/jasiri/quick/QuickRuntime.kt` a
   during that time. After that it is sent once, with a fresh `msgId` and the send time as its
   timestamp. There is no automatic re-broadcast. Several messages can be pending at once, each
   with its own timer.
+- **Signed or not sent.** The packet is signed before the send call returns. If signing fails,
+  the packet is not broadcast and the send reports failure (Not sent), because receivers drop
+  unsigned JASIRI packets.
 - **Retry.** A NOT_SENT message can be retried by hand. The retry sends the same bytes, so the
   same `msgId`, and receivers that already have it treat it as a duplicate.
 - **Own limit.** A phone queues at most 5 messages per 60 seconds (sliding window), which stays
