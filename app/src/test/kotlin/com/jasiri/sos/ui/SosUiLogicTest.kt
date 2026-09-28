@@ -6,6 +6,8 @@ import com.jasiri.sos.SosBody
 import com.jasiri.sos.SosCategory
 import com.jasiri.sos.SosEntry
 import com.jasiri.sos.SosEntryState
+import com.jasiri.sos.SosLocation
+import java.util.Locale
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -143,5 +145,35 @@ class SosUiLogicTest {
         assertEquals(0, batteryPercentOrNull(0))
         assertEquals(100, batteryPercentOrNull(100))
         assertNull(batteryPercentOrNull(101))
+    }
+
+    private val nairobi = SosLocation(
+        latE7 = -12863890,
+        lonE7 = 368172230,
+        accuracyMeters = 13,
+        fixAgeSeconds = 0,
+        approximate = false
+    )
+
+    @Test
+    fun `formatCoords uses dot separator regardless of default locale`() {
+        val original = Locale.getDefault()
+        try {
+            Locale.setDefault(Locale.GERMANY)
+            assertEquals("-1.28639, 36.81722", formatCoords(nairobi))
+        } finally {
+            Locale.setDefault(original)
+        }
+    }
+
+    @Test
+    fun `geoUri builds a geo intent uri`() {
+        assertEquals("geo:-1.28639,36.81722?q=-1.28639,36.81722(SOS)", geoUri(nairobi))
+    }
+
+    @Test
+    fun `accuracyOrNull treats 65535 as unknown`() {
+        assertNull(accuracyOrNull(nairobi.copy(accuracyMeters = 65535)))
+        assertEquals(13, accuracyOrNull(nairobi))
     }
 }

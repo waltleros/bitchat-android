@@ -53,4 +53,26 @@
     <string name="jasiri_sos_cat_detained">Detained</string>
     <string name="jasiri_sos_cat_missing">Missing person</string>
     <string name="jasiri_sos_cat_other">Other</string>
+
+    <!-- Location switch -->
+    <string name="jasiri_sos_share_location">Share my location</string>
+    <string name="jasiri_sos_share_location_hint">Anyone nearby can read your SOS location.</string>
+
+    <!-- Location on own status card -->
+    <string name="jasiri_sos_loc_shared">Location: shared (±%1$d m)</string>
+    <string name="jasiri_sos_loc_shared_unknown_acc">Location: shared</string>
+    <string name="jasiri_sos_loc_getting">Location: getting a fix…</string>
+    <string name="jasiri_sos_loc_off">Location: off</string>
+    <string name="jasiri_sos_loc_no_permission">Location: permission denied — tap to allow</string>
+    <string name="jasiri_sos_loc_unavailable">Location: unavailable (turn on GPS)</string>
+
+    <!-- Location on received cards -->
+    <string name="jasiri_sos_loc_line">📍 %1$s · ±%2$d m · fix %3$s old</string>
+    <string name="jasiri_sos_loc_line_unknown_acc">📍 %1$s · fix %2$s old</string>
+    <string name="jasiri_sos_loc_approximate">" · approximate"</string>
+    <string name="jasiri_sos_open_map">Open in map</string>
+    <string name="jasiri_sos_no_map_app">No map app installed</string>
+    <string name="jasiri_sos_age_under_minute">under 1 min</string>
+    <string name="jasiri_sos_age_minutes">%1$d min</string>
+    <string name="jasiri_sos_age_hours">%1$d h</string>
 </resources>

@@ -317,3 +317,28 @@ logic in `SosUiLogic.kt`.
   - If an action cannot be sent because the mesh is not attached, a "Not sent — no mesh
     connection" toast appears and nothing changes.
 - **Strings.** All texts are in `res/values/jasiri_strings.xml`, English only in v1.
+
+## Location (v1)
+
+Reference implementation: `app/src/main/java/com/jasiri/sos/SosLocationMath.kt` (conversion to the
+wire type), `location/SosLocationSource.kt` (plain `LocationManager`) and `ui/SosScreen.kt`.
+
+- **Precise by default, per SOS.** The SOS page has a "Share my location" switch, on by default.
+  The person can turn it off before firing or at any time while the SOS is active.
+  - Turning it off while active sends an update with no location.
+  - Turning it on while active asks for the location permission if needed, then sends a fresh fix.
+  - Without FINE permission (COARSE only), fixes are sent with `approximate` set.
+- **The SOS is never delayed.** It fires immediately with the best last-known fix (or none), then
+  a fresh fix is requested and sent as an update of the same SOS. If the permission is missing,
+  the SOS fires first and the permission dialog follows.
+- **Refresh.** While the SOS page is open and the SOS is active, the location is refreshed every
+  2 minutes.
+- **Known limit.** With the page closed there is no refresh. `fixAgeSeconds` in re-broadcasts is
+  the fix age at the last update, not at re-broadcast time, so a receiver sees the fix as younger
+  than it is.
+- **Separate from location channels.** SOS location does not use the upstream geohash providers
+  or their privacy gate (`LiveLocationPrivacyGate`); it is its own explicit per-SOS choice.
+- **Responders.** A received SOS with a location shows its coordinates, accuracy and fix age, and
+  an "Open in map" button that opens a `geo:<lat>,<lon>?q=<lat>,<lon>(SOS)` intent in any
+  installed map app.
+- **Privacy.** An SOS is signed but not encrypted: its location is readable by anyone in range.
