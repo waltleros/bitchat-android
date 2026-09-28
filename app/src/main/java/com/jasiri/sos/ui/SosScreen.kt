@@ -377,6 +377,8 @@ private fun SosPageContent(runtime: SosRuntime, onDismiss: () -> Unit) {
             CloseButton(onClick = onDismiss)
         }
 
+        com.jasiri.onboarding.BluetoothBanner()
+
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),

@@ -132,6 +132,7 @@ class MainActivity : OrientationAwareActivity() {
             onBluetoothEnabled = ::handleBluetoothEnabled,
             onBluetoothDisabled = ::handleBluetoothDisabled
         )
+        if (com.jasiri.onboarding.BluetoothSkipStore.isSkipped(this)) { if (bluetoothStatusManager.checkBluetoothStatus() == com.bitchat.android.onboarding.BluetoothStatus.ENABLED) com.jasiri.onboarding.BluetoothSkipStore.clear(this) else mainViewModel.skipBluetoothCheck() } // JASIRI: remember Skip only while BT is still off
         locationStatusManager = LocationStatusManager(
             activity = this,
             context = this,
@@ -245,6 +246,7 @@ class MainActivity : OrientationAwareActivity() {
                         checkBluetoothAndProceed()
                     },
                     onSkip = {
+                        com.jasiri.onboarding.BluetoothSkipStore.markSkipped(this@MainActivity) // JASIRI: persist Skip
                         mainViewModel.skipBluetoothCheck()
                         checkLocationAndProceed()
                     },
@@ -402,6 +404,7 @@ class MainActivity : OrientationAwareActivity() {
         }
         when (mainViewModel.bluetoothStatus.value) {
             BluetoothStatus.ENABLED -> {
+                com.jasiri.onboarding.BluetoothSkipStore.clear(this) // JASIRI: BT is on; next switch-off reminds once
                 // Bluetooth is enabled, check location services next
                 checkLocationAndProceed()
             }

@@ -238,6 +238,8 @@ private fun QuickSheetContent(
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
+        com.jasiri.onboarding.BluetoothBanner()
+
         if (pending != null) {
             UndoBar(
                 entry = pending,

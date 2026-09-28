@@ -106,4 +106,9 @@
     <string name="jasiri_quick_rate_limited">Slow down — max 5 quick messages per minute</string>
     <string name="jasiri_quick_no_map_app">No map app installed</string>
     <string name="jasiri_quick_open_map">Open in map</string>
+
+    <!-- Bluetooth banner (SOS page and quick sheet) -->
+    <string name="jasiri_bt_off">Bluetooth is off — SOS and quick messages can\'t reach anyone.</string>
+    <string name="jasiri_bt_turn_on">Turn on</string>
+    <string name="jasiri_bt_unsupported">This device has no Bluetooth — SOS and quick messages can\'t use the mesh.</string>
 </resources>
