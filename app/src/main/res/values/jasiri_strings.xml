@@ -8,9 +8,12 @@
     <string name="jasiri_sos_choose_category">What\'s happening?</string>
 
     <!-- Own SOS status -->
-    <string name="jasiri_sos_active_sent">SOS ACTIVE — sent %1$d times</string>
+    <plurals name="jasiri_sos_active_sent">
+        <item quantity="one">SOS ACTIVE — reached nearby phones once</item>
+        <item quantity="other">SOS ACTIVE — reached nearby phones %1$d times</item>
+    </plurals>
     <string name="jasiri_sos_last_sent">last sent %1$s</string>
-    <string name="jasiri_sos_not_sent">SOS NOT SENT — no mesh connection yet. Retrying…</string>
+    <string name="jasiri_sos_not_sent">SOS NOT SENT — no phones in range yet. Keep the app open, move toward people. Retrying…</string>
     <string name="jasiri_sos_cancel_button">I\'m safe — cancel SOS</string>
     <string name="jasiri_sos_cancel_confirm_title">Cancel your SOS?</string>
     <string name="jasiri_sos_cancel_confirm_body">Nearby phones will be told you\'re safe.</string>

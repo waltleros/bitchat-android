@@ -259,6 +259,9 @@ each group the highest severity comes first, then the most recently heard.
 - Responses that arrive before the SOS they refer to are dropped (rule 6). They are not buffered.
 - An entry that has been removed is forgotten. If a late re-broadcast of a removed SOS arrives,
   it creates a new `ACTIVE` entry. This includes a cancelled SOS whose 1-hour retention has passed.
+- A send is counted as successful when at least one BLE peer is "active", meaning a peer seen
+  recently. That still does not prove this particular packet was received; delivery confirmation
+  comes from ACK/CLAIM.
 
 ## App runtime (v1)
 
@@ -281,6 +284,9 @@ Reference implementation: `app/src/main/java/com/jasiri/sos/SosRuntime.kt` and `
 - **Ticker.** The runtime ticks the board every 30 s to update stale flags and prune old entries.
 - **Responder actions refuse to run while detached.** Acknowledge, claim and resolve return false
   and change nothing, so the board never records an action that could not be sent.
+- **A send counts only when someone is in range.** A send counts as successful only when it was
+  queued AND at least one BLE peer is active (`peerGatedTransport`). With nobody in range the SOS
+  stays ACTIVE, shows NOT SENT, and retries every 10 s.
 - **Early events are lost.** `SosInbox` does not replay, so SOS received before the first attach,
   or before a new board's collector has subscribed, are not seen by the board.
 

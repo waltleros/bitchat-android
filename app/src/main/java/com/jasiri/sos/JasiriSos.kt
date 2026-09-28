@@ -10,7 +10,15 @@ object JasiriSos {
     val runtime: SosRuntime by lazy { SosRuntime(scope, System::currentTimeMillis, SosInbox.events) }
 
     fun onMeshReady(mesh: com.bitchat.android.mesh.MeshService) {
-        try { runtime.attach(mesh.myPeerID) { payload -> mesh.sendJasiriSos(payload) } } catch (_: Exception) { }
+        try {
+            runtime.attach(
+                mesh.myPeerID,
+                peerGatedTransport(
+                    send = { payload -> mesh.sendJasiriSos(payload) },
+                    peerCount = { com.bitchat.android.service.MeshServiceHolder.meshService?.getActivePeerCount() ?: 0 }
+                )
+            )
+        } catch (_: Exception) { }
     }
 
     fun onMeshCleared() {

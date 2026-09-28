@@ -65,6 +65,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -356,7 +357,11 @@ private fun ActiveStatusCard(display: OwnSosDisplay) {
         ) {
             if (display is OwnSosDisplay.Sending) {
                 Text(
-                    text = stringResource(R.string.jasiri_sos_active_sent, display.successfulSends),
+                    text = pluralStringResource(
+                        R.plurals.jasiri_sos_active_sent,
+                        display.successfulSends,
+                        display.successfulSends
+                    ),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
