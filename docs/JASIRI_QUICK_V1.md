@@ -217,3 +217,31 @@ Reference implementation: `app/src/main/java/com/jasiri/quick/QuickRuntime.kt` a
   mesh going away) only drops the transport.
 - **Single entry point.** Upstream `MeshServiceHolder` calls `com.jasiri.JasiriHooks`, which
   attaches and detaches every JASIRI runtime (SOS and quick messages).
+
+## UI (v1)
+
+Reference implementation: `app/src/main/java/com/jasiri/quick/ui/QuickGrid.kt` and
+`QuickUiLogic.kt`.
+
+- **Where.** The grid button sits beside the chat input, only in the public chat: not in
+  private chats, not in named channels, and not while a voice note is recording. It is the
+  single upstream edit (`InputComponents.kt`, marked `// JASIRI:`). Quick messages always go
+  over the BLE mesh, whatever the chat view.
+- **One tap, then undo.** Tapping a tile queues the message and shows an amber bar for 5 seconds
+  ("Sending "…" in N s" with UNDO). The sheet stays open so the bar stays visible. If the phone
+  is over its own limit, a toast says so and nothing is queued.
+- **Tiles.** Twelve tiles in catalog order, coloured by tone: INFO neutral, NEED amber with black
+  text, WARNING red with white text. Each shows the English label in bold, with a second
+  language underneath: the phone language if the catalog is complete in it, otherwise Swahili
+  (Kenya-first default). Screen readers hear both labels.
+- **Location.** "Include my location" is on by default and applies only to presets that want a
+  location. It uses the last-known fix only: no fresh GPS request and no permission prompt from
+  this sheet. The fix is marked approximate when only coarse permission is granted. Without a
+  fix or permission, the message goes without a location.
+- **Feed.** Own and received messages, newest first, each with a tone colour bar, the labels,
+  "You" or the sender's nickname, and how long ago it was heard. A location shows as
+  coordinates with accuracy and an "Open in map" link. Own messages show "Sending in N s" with
+  Undo, "Sent", or "Not sent — no phones in range" with Retry. Unknown preset ids show
+  "Unknown preset #N — update JASIRI".
+- **Unread badge.** A red badge on the button counts unread received messages ("9+" above 9).
+  It is cleared when the sheet opens, and messages arriving while it is open are marked read.

@@ -583,6 +583,7 @@ fun MessageInput(
                     )
                 } else {
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (!isRecording && latestSelectedPeer.value == null && latestChannel.value == null) com.jasiri.quick.ui.QuickGridButton() // JASIRI: quick tap grid (public mesh chat only)
                         if (showMediaButtons) {
                             // The camera steps aside while recording so the microphone is the
                             // only thing that can be released.

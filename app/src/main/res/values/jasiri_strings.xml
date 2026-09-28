@@ -75,4 +75,35 @@
     <string name="jasiri_sos_age_under_minute">under 1 min</string>
     <string name="jasiri_sos_age_minutes">%1$d min</string>
     <string name="jasiri_sos_age_hours">%1$d h</string>
+
+    <!-- Quick messages: button and sheet header -->
+    <string name="jasiri_quick_cd_open">Open quick messages</string>
+    <string name="jasiri_quick_title">Quick messages</string>
+    <string name="jasiri_quick_hint">Sent to everyone nearby over Bluetooth. No typing needed.</string>
+
+    <!-- Quick messages: location switch -->
+    <string name="jasiri_quick_include_location">Include my location</string>
+    <string name="jasiri_quick_include_location_hint">Anyone nearby can read it.</string>
+
+    <!-- Quick messages: undo -->
+    <string name="jasiri_quick_sending_in">Sending \"%1$s\" in %2$d s</string>
+    <string name="jasiri_quick_undo">UNDO</string>
+    <string name="jasiri_quick_status_pending">Sending in %1$d s</string>
+
+    <!-- Quick messages: feed -->
+    <string name="jasiri_quick_feed_header">Nearby quick messages</string>
+    <string name="jasiri_quick_feed_empty">Nothing yet. Messages from people nearby will appear here.</string>
+    <string name="jasiri_quick_you">You</string>
+    <string name="jasiri_quick_heard">%1$s · %2$s</string>
+
+    <!-- Quick messages: own statuses -->
+    <string name="jasiri_quick_status_sent">Sent</string>
+    <string name="jasiri_quick_status_not_sent">Not sent — no phones in range</string>
+    <string name="jasiri_quick_retry">Retry</string>
+
+    <!-- Quick messages: toasts and map -->
+    <string name="jasiri_quick_retry_failed">Still no phones in range</string>
+    <string name="jasiri_quick_rate_limited">Slow down — max 5 quick messages per minute</string>
+    <string name="jasiri_quick_no_map_app">No map app installed</string>
+    <string name="jasiri_quick_open_map">Open in map</string>
 </resources>
