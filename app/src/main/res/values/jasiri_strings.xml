@@ -111,4 +111,34 @@
     <string name="jasiri_bt_off">Bluetooth is off — SOS and quick messages can\'t reach anyone.</string>
     <string name="jasiri_bt_turn_on">Turn on</string>
     <string name="jasiri_bt_unsupported">This device has no Bluetooth — SOS and quick messages can\'t use the mesh.</string>
+
+    <!-- Get ready checklist: header -->
+    <string name="jasiri_ready_subtitle">Get ready — about 30 seconds</string>
+    <string name="jasiri_ready_progress">%1$d of %2$d ready</string>
+
+    <!-- Get ready checklist: status and tags -->
+    <string name="jasiri_ready_ok">✓ Ready</string>
+    <string name="jasiri_ready_not_available">Not available</string>
+    <string name="jasiri_ready_required">Required</string>
+    <string name="jasiri_ready_recommended">Recommended</string>
+
+    <!-- Get ready checklist: rows -->
+    <string name="jasiri_ready_perm_title">Nearby devices &amp; location</string>
+    <string name="jasiri_ready_perm_why">Needed to find phones around you. Nothing is collected.</string>
+    <string name="jasiri_ready_allow">Allow</string>
+    <string name="jasiri_ready_bt_title">Bluetooth on</string>
+    <string name="jasiri_ready_bt_why">How SOS and messages travel without internet.</string>
+    <string name="jasiri_ready_turn_on">Turn on</string>
+    <string name="jasiri_ready_loc_title">Location on</string>
+    <string name="jasiri_ready_loc_why">Lets you share where you are in an SOS.</string>
+    <string name="jasiri_ready_bg_title">Work while closed</string>
+    <string name="jasiri_ready_bg_why">Keeps the mesh alive when the app is in the background.</string>
+    <string name="jasiri_ready_after_permissions">After permissions</string>
+    <string name="jasiri_ready_battery_title">No battery limits</string>
+    <string name="jasiri_ready_battery_why">Stops the phone from cutting off the mesh.</string>
+
+    <!-- Get ready checklist: footer -->
+    <string name="jasiri_ready_allow_permissions">Allow permissions</string>
+    <string name="jasiri_ready_start">Start JASIRI</string>
+    <string name="jasiri_ready_later_hint">You can finish the rest later. SOS will warn you if Bluetooth is off.</string>
 </resources>

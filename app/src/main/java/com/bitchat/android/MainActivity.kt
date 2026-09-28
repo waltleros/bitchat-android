@@ -229,6 +229,40 @@ class MainActivity : OrientationAwareActivity() {
             }
         }
 
+        // JASIRI: one "Get ready" checklist replaces the five setup screens
+        if (onboardingState == OnboardingState.PERMISSION_EXPLANATION ||
+            onboardingState == OnboardingState.BACKGROUND_LOCATION_EXPLANATION ||
+            onboardingState == OnboardingState.BLUETOOTH_CHECK ||
+            onboardingState == OnboardingState.LOCATION_CHECK ||
+            onboardingState == OnboardingState.BATTERY_OPTIMIZATION_CHECK
+        ) {
+            com.jasiri.onboarding.GetReadyScreen(
+                modifier = modifier,
+                snapshot = { jasiriReadiness() },
+                actions = com.jasiri.onboarding.GetReadyActions(
+                    allowPermissions = {
+                        mainViewModel.updateOnboardingState(OnboardingState.PERMISSION_REQUESTING)
+                        onboardingCoordinator.requestPermissions()
+                    },
+                    turnOnBluetooth = {
+                        mainViewModel.updateBluetoothLoading(true)
+                        bluetoothStatusManager.requestEnableBluetooth()
+                    },
+                    turnOnLocation = {
+                        mainViewModel.updateLocationLoading(true)
+                        locationStatusManager.requestEnableLocation()
+                    },
+                    allowBackgroundLocation = { onboardingCoordinator.requestBackgroundLocation() },
+                    allowBattery = {
+                        mainViewModel.updateBatteryOptimizationLoading(true)
+                        batteryOptimizationManager.requestDisableBatteryOptimization()
+                    },
+                    start = { jasiriStart() }
+                )
+            )
+            return
+        } // JASIRI: end
+
         when (onboardingState) {
             OnboardingState.PERMISSION_REQUESTING -> {
                 InitializingScreen(modifier)
@@ -877,4 +911,57 @@ class MainActivity : OrientationAwareActivity() {
         
         // Do not stop mesh here; ForegroundService owns lifecycle for background reliability
     }
+
+    // JASIRI: Get ready checklist helpers
+    private fun jasiriReadiness(): com.jasiri.onboarding.ReadinessSnapshot {
+        val ok = com.jasiri.onboarding.ItemStatus.OK
+        val todo = com.jasiri.onboarding.ItemStatus.TODO
+        val notAvailable = com.jasiri.onboarding.ItemStatus.NOT_AVAILABLE
+        return com.jasiri.onboarding.ReadinessSnapshot(
+            permissions = if (permissionManager.areRequiredPermissionsGranted()) ok else todo,
+            bluetooth = when (bluetoothStatusManager.checkBluetoothStatus()) {
+                BluetoothStatus.ENABLED -> ok
+                BluetoothStatus.DISABLED -> todo
+                BluetoothStatus.NOT_SUPPORTED -> notAvailable
+            },
+            locationServices = when (locationStatusManager.checkLocationStatus()) {
+                LocationStatus.ENABLED -> ok
+                LocationStatus.DISABLED -> todo
+                LocationStatus.NOT_AVAILABLE -> notAvailable
+            },
+            backgroundLocation = when {
+                !permissionManager.needsBackgroundLocationPermission() -> notAvailable
+                permissionManager.isBackgroundLocationGranted() -> ok
+                else -> todo
+            },
+            battery = when {
+                !batteryOptimizationManager.isBatteryOptimizationSupported() -> notAvailable
+                batteryOptimizationManager.isBatteryOptimizationDisabled() -> ok
+                else -> todo
+            }
+        )
+    }
+
+    private fun jasiriStart() {
+        if (!permissionManager.areRequiredPermissionsGranted()) {
+            mainViewModel.updateOnboardingState(OnboardingState.PERMISSION_REQUESTING)
+            onboardingCoordinator.requestPermissions()
+            return
+        }
+        val readiness = jasiriReadiness()
+        val todo = com.jasiri.onboarding.ItemStatus.TODO
+        if (readiness.bluetooth == todo) {
+            com.jasiri.onboarding.BluetoothSkipStore.markSkipped(this)
+            mainViewModel.skipBluetoothCheck()
+        }
+        if (readiness.backgroundLocation == todo) {
+            com.bitchat.android.onboarding.BackgroundLocationPreferenceManager.setSkipped(this, true)
+        }
+        if (readiness.battery == todo) {
+            BatteryOptimizationPreferenceManager.setSkipped(this, true)
+        }
+        permissionManager.markOnboardingComplete()
+        mainViewModel.updateOnboardingState(OnboardingState.INITIALIZING)
+        initializeApp()
+    } // JASIRI: end
 }
