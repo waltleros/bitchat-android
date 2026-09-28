@@ -342,3 +342,24 @@ wire type), `location/SosLocationSource.kt` (plain `LocationManager`) and `ui/So
   an "Open in map" button that opens a `geo:<lat>,<lon>?q=<lat>,<lon>(SOS)` intent in any
   installed map app.
 - **Privacy.** An SOS is signed but not encrypted: its location is readable by anyone in range.
+
+## Alerts (v1)
+
+Reference implementation: `app/src/main/java/com/jasiri/alerts/AlertPlanner.kt` (what to alert)
+and `JasiriAlerts.kt` (notifications), started from `BitchatApplication`, so alerts work while the
+mesh runs in the background with the app closed.
+
+- **Received SOS.** Each new ACTIVE SOS from another phone posts one high-priority notification
+  on the "SOS alerts" channel, with a long vibration. The title names the category and the text
+  names the sender. A sosId alerts at most once.
+- **Removed when closed.** The notification is removed when that SOS is cancelled or resolved,
+  or drops off the board. A stale SOS keeps its notification.
+- **Taps.** Tapping opens the app with the SOS page open. If the SOS has a location, an
+  "Open in map" action opens it in a map app (through the system chooser when Android hides
+  which map apps are installed).
+- **Never for own.** This phone's own SOS never alerts.
+- **Notifications off.** If notifications are off or not permitted, the phone only vibrates,
+  once per new SOS.
+- **Muting.** Users can mute the "SOS alerts" channel in Android settings.
+- **Debug builds.** Long-pressing the SOS header pill posts one sample SOS and one sample warning
+  notification, without touching the SOS board.

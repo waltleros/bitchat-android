@@ -70,6 +70,7 @@ import com.bitchat.android.R
 import com.bitchat.android.service.MeshServiceHolder
 import com.bitchat.android.ui.ComposerActionSurface
 import com.bitchat.android.ui.ComposerIconSize
+import com.jasiri.alerts.JasiriAlerts
 import com.jasiri.quick.JasiriQuick
 import com.jasiri.quick.QuickCatalog
 import com.jasiri.quick.QuickFeedEntry
@@ -101,6 +102,15 @@ fun QuickGridButton(modifier: Modifier = Modifier) {
     val description = stringResource(R.string.jasiri_quick_cd_open)
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
+    val openRequested by JasiriAlerts.openQuickRequest.collectAsStateWithLifecycle()
+
+    LaunchedEffect(openRequested) {
+        if (openRequested) {
+            open = true
+            runtime.markAllRead()
+            JasiriAlerts.openQuickRequest.value = false
+        }
+    }
 
     Box(modifier = modifier) {
         ComposerActionSurface(

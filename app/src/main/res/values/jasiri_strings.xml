@@ -141,4 +141,23 @@
     <string name="jasiri_ready_allow_permissions">Allow permissions</string>
     <string name="jasiri_ready_start">Start JASIRI</string>
     <string name="jasiri_ready_later_hint">You can finish the rest later. SOS will warn you if Bluetooth is off.</string>
+
+    <!-- Alerts: notification channels -->
+    <string name="jasiri_alert_channel_sos">SOS alerts</string>
+    <string name="jasiri_alert_channel_sos_desc">Someone nearby needs help</string>
+    <string name="jasiri_alert_channel_warn">Danger warnings</string>
+    <string name="jasiri_alert_channel_warn_desc">Tear gas, danger, injuries or blocked roads reported nearby</string>
+
+    <!-- Alerts: SOS notification -->
+    <string name="jasiri_alert_sos_title">SOS nearby — %1$s</string>
+    <string name="jasiri_alert_sos_text">From %1$s · tap to respond</string>
+    <string name="jasiri_alert_open_map">Open in map</string>
+
+    <!-- Alerts: warning notification -->
+    <string name="jasiri_alert_warning_title">Warning nearby: %1$s</string>
+    <string name="jasiri_alert_warnings_title">%1$d warnings nearby</string>
+    <string name="jasiri_alert_warning_line">%1$s · %2$s</string>
+
+    <!-- Alerts: debug -->
+    <string name="jasiri_alert_debug_posted">Debug: sample alerts posted</string>
 </resources>

@@ -245,3 +245,23 @@ Reference implementation: `app/src/main/java/com/jasiri/quick/ui/QuickGrid.kt` a
   "Unknown preset #N — update JASIRI".
 - **Unread badge.** A red badge on the button counts unread received messages ("9+" above 9).
   It is cleared when the sheet opens, and messages arriving while it is open are marked read.
+
+## Alerts (v1)
+
+Reference implementation: `app/src/main/java/com/jasiri/alerts/AlertPlanner.kt` and
+`JasiriAlerts.kt`, started from `BitchatApplication`, so alerts work with the app closed.
+
+- **WARNING only.** Received messages whose preset tone is WARNING (ids 4, 6, 7, 8) alert. Own
+  messages, NEED and INFO messages, and unknown preset ids never alert. Each message alerts at
+  most once.
+- **One grouped notification.** The "Danger warnings" channel shows one notification listing the
+  latest 5 warnings, newest first. A single warning shows the English label as the title and
+  "Swahili label · sender" below; several show a count and one "English label · sender" line each.
+- **Vibration.** It vibrates at most once every 20 seconds; updates in between are silent.
+- **Cleared on open.** Opening the quick sheet (unread count back to 0) clears the notification
+  and its list.
+- **Taps.** Tapping opens the app with the quick sheet open (once the public chat, where the
+  grid button lives, is showing).
+- **Notifications off.** If notifications are off or not permitted, the phone only vibrates,
+  following the same 20-second limit.
+- **Muting.** Users can mute the "Danger warnings" channel in Android settings.

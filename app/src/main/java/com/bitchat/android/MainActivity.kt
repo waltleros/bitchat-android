@@ -829,6 +829,7 @@ class MainActivity : OrientationAwareActivity() {
      * Handle intents from notification clicks - open specific private chat or geohash chat
      */
     private fun handleNotificationIntent(intent: Intent) {
+        com.jasiri.alerts.JasiriAlerts.handleIntent(intent) // JASIRI: open SOS page / quick sheet from an alert
         val shouldOpenPrivateChat = intent.getBooleanExtra(
             com.bitchat.android.ui.NotificationManager.EXTRA_OPEN_PRIVATE_CHAT, 
             false

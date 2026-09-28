@@ -19,6 +19,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -89,9 +90,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.bitchat.android.BuildConfig
 import com.bitchat.android.R
 import com.bitchat.android.core.ui.component.button.CloseButton
 import com.bitchat.android.service.MeshServiceHolder
+import com.jasiri.alerts.JasiriAlerts
 import com.jasiri.sos.JasiriSos
 import com.jasiri.sos.OwnSosController
 import com.jasiri.sos.OwnSosState
@@ -118,6 +121,15 @@ fun SosHeaderButton(modifier: Modifier = Modifier) {
     val status by runtime.own.status.collectAsStateWithLifecycle()
     val entries by runtime.entries.collectAsStateWithLifecycle()
     var open by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
+    val openRequested by JasiriAlerts.openSosRequest.collectAsStateWithLifecycle()
+
+    LaunchedEffect(openRequested) {
+        if (openRequested) {
+            open = true
+            JasiriAlerts.openSosRequest.value = false
+        }
+    }
 
     val ownLive = status.state == OwnSosState.ACTIVE || status.state == OwnSosState.CANCELLING
     val badge = alertBadgeCount(entries)
@@ -143,7 +155,12 @@ fun SosHeaderButton(modifier: Modifier = Modifier) {
         modifier = modifier
             .size(44.dp)
             .clip(CircleShape)
-            .clickable(onClickLabel = description, role = Role.Button) { open = true }
+            .combinedClickable(
+                onClickLabel = description,
+                role = Role.Button,
+                onClick = { open = true },
+                onLongClick = if (BuildConfig.DEBUG) ({ JasiriAlerts.debugDemo(context) }) else null
+            )
             .semantics { contentDescription = description },
         contentAlignment = Alignment.Center
     ) {
