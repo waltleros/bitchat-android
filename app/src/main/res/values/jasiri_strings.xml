@@ -160,4 +160,19 @@
 
     <!-- Alerts: debug -->
     <string name="jasiri_alert_debug_posted">Debug: sample alerts posted</string>
+
+    <!-- Distance and direction to a received SOS -->
+    <string name="jasiri_sos_distance_away">≈%1$s %2$s of you</string>
+    <string name="jasiri_sos_distance_very_close">Very close — within ~%1$d m</string>
+    <string name="jasiri_alert_sos_text_distance">From %1$s · %2$s · tap to respond</string>
+
+    <!-- Compass directions -->
+    <string name="jasiri_dir_n">north</string>
+    <string name="jasiri_dir_ne">north-east</string>
+    <string name="jasiri_dir_e">east</string>
+    <string name="jasiri_dir_se">south-east</string>
+    <string name="jasiri_dir_s">south</string>
+    <string name="jasiri_dir_sw">south-west</string>
+    <string name="jasiri_dir_w">west</string>
+    <string name="jasiri_dir_nw">north-west</string>
 </resources>

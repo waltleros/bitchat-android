@@ -380,3 +380,21 @@ mesh runs in the background with the app closed.
 - **Muting.** Users can mute the "SOS alerts" channel in Android settings.
 - **Debug builds.** Long-pressing the SOS header pill posts one sample SOS and one sample warning
   notification, without touching the SOS board.
+
+## Distance and direction (v1)
+
+- **Where it shows.** A received SOS that carries a location shows one bold line above its
+  coordinates, for example "≈350 m north-east of you". The SOS notification shows the same text:
+  "From Amina · ≈350 m north-east of you · tap to respond".
+- **Computed locally, never sent.** The line uses this phone's last-known location (no new fix is
+  requested for it). This phone's location is not added to any packet.
+- **Maths.** Distance uses the haversine formula (Earth radius 6,371 km). Direction is the initial
+  bearing from you to them, shown as one of 8 words: north, north-east, east, south-east, south,
+  south-west, west, north-west.
+- **Rounding.** Under 1 km the distance is rounded to the nearest 10 m (minimum "10 m"). From 1 km
+  to under 10 km it shows one decimal ("1.2 km"), and from 10 km whole kilometres ("14 km").
+- **Very close.** If the distance is within the combined accuracy of both fixes, the card shows
+  "Very close — within ~N m" with no direction. An unknown accuracy counts as 100 m, the combined
+  figure is at least 20 m, and N is rounded up to a multiple of 10.
+- **Hidden.** No line is shown (and the notification keeps its plain text) when this phone has no
+  location permission or no last-known fix, or when the SOS has no location.

@@ -24,9 +24,14 @@ import com.bitchat.android.R
 import com.bitchat.android.service.MeshServiceHolder
 import com.jasiri.quick.JasiriQuick
 import com.jasiri.quick.QuickCatalog
+import com.jasiri.sos.Compass8
 import com.jasiri.sos.JasiriSos
 import com.jasiri.sos.SosCategory
+import com.jasiri.sos.SosDistance
 import com.jasiri.sos.SosLocation
+import com.jasiri.sos.location.SosLocationSource
+import com.jasiri.sos.location.toSosLocationOrNull
+import com.jasiri.sos.sosDistance
 import com.jasiri.sos.ui.geoUri
 import com.jasiri.sos.ui.peerLabel
 import kotlinx.coroutines.CoroutineScope
@@ -199,10 +204,16 @@ object JasiriAlerts {
             return
         }
         val id = sosNotificationId(sosId)
+        val distanceText = location?.let { distanceTextOrNull(ctx, it) }
+        val body = if (distanceText != null) {
+            ctx.getString(R.string.jasiri_alert_sos_text_distance, senderLabel, distanceText)
+        } else {
+            ctx.getString(R.string.jasiri_alert_sos_text, senderLabel)
+        }
         val builder = NotificationCompat.Builder(ctx, CHANNEL_SOS)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(ctx.getString(R.string.jasiri_alert_sos_title, ctx.getString(categoryLabelRes(category))))
-            .setContentText(ctx.getString(R.string.jasiri_alert_sos_text, senderLabel))
+            .setContentText(body)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -346,6 +357,37 @@ object JasiriAlerts {
     } catch (_: Exception) {
         null
     } ?: emptyMap()
+
+    /** From this phone's last-known fix only; null without permission or a fix. Never prompts, never leaves the phone. */
+    private fun distanceTextOrNull(ctx: Context, them: SosLocation): String? {
+        return try {
+            val source = SosLocationSource(ctx)
+            val me = source.lastKnown()
+                ?.toSosLocationOrNull(System.currentTimeMillis(), approximate = !source.hasFinePermission())
+                ?: return null
+            when (val d = sosDistance(me, them)) {
+                is SosDistance.Away ->
+                    ctx.getString(R.string.jasiri_sos_distance_away, d.text, directionText(ctx, d.direction))
+                is SosDistance.VeryClose ->
+                    ctx.getString(R.string.jasiri_sos_distance_very_close, d.withinMeters)
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun directionText(ctx: Context, direction: Compass8): String = ctx.getString(
+        when (direction) {
+            Compass8.N -> R.string.jasiri_dir_n
+            Compass8.NE -> R.string.jasiri_dir_ne
+            Compass8.E -> R.string.jasiri_dir_e
+            Compass8.SE -> R.string.jasiri_dir_se
+            Compass8.S -> R.string.jasiri_dir_s
+            Compass8.SW -> R.string.jasiri_dir_sw
+            Compass8.W -> R.string.jasiri_dir_w
+            Compass8.NW -> R.string.jasiri_dir_nw
+        }
+    )
 
     private fun categoryLabelRes(category: SosCategory): Int = when (category) {
         SosCategory.GENERAL -> R.string.jasiri_sos_cat_general

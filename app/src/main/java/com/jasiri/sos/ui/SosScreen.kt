@@ -95,6 +95,7 @@ import com.bitchat.android.R
 import com.bitchat.android.core.ui.component.button.CloseButton
 import com.bitchat.android.service.MeshServiceHolder
 import com.jasiri.alerts.JasiriAlerts
+import com.jasiri.sos.Compass8
 import com.jasiri.sos.JasiriSos
 import com.jasiri.sos.OwnSosController
 import com.jasiri.sos.OwnSosState
@@ -102,10 +103,12 @@ import com.jasiri.sos.OwnSosStatus
 import com.jasiri.sos.SOS_ACCURACY_UNKNOWN
 import com.jasiri.sos.SosBody
 import com.jasiri.sos.SosCategory
+import com.jasiri.sos.SosDistance
 import com.jasiri.sos.SosEntry
 import com.jasiri.sos.SosEntryState
 import com.jasiri.sos.SosLocation
 import com.jasiri.sos.SosRuntime
+import com.jasiri.sos.sosDistance
 import com.jasiri.sos.location.SosLocationOptOut
 import com.jasiri.sos.location.SosLocationSource
 import com.jasiri.sos.location.toSosLocationOrNull
@@ -248,6 +251,13 @@ private fun SosPageContent(runtime: SosRuntime, onDismiss: () -> Unit) {
     val source = remember { SosLocationSource(context) }
     DisposableEffect(source) {
         onDispose { source.cancel() }
+    }
+    val myLocation = remember(now / 10_000) {
+        try {
+            source.lastKnown()?.toSosLocationOrNull(System.currentTimeMillis(), !source.hasFinePermission())
+        } catch (_: Exception) {
+            null
+        }
     }
     var shareOn by rememberSaveable { mutableStateOf(initialShareLocation(own.status.value)) }
     var hasPermission by remember { mutableStateOf(source.hasPermission()) }
@@ -441,7 +451,8 @@ private fun SosPageContent(runtime: SosRuntime, onDismiss: () -> Unit) {
                         now = now,
                         myPeerID = myPeerID,
                         nicknames = nicknames,
-                        runtime = runtime
+                        runtime = runtime,
+                        myLocation = myLocation
                     )
                 }
             }
@@ -744,7 +755,8 @@ private fun ReceivedSosCard(
     now: Long,
     myPeerID: String?,
     nicknames: Map<String, String>,
-    runtime: SosRuntime
+    runtime: SosRuntime,
+    myLocation: SosLocation?
 ) {
     val context = LocalContext.current
     val notSentMessage = stringResource(R.string.jasiri_sos_not_sent_toast)
@@ -804,7 +816,7 @@ private fun ReceivedSosCard(
             }
 
             entry.body.location?.let { location ->
-                ReceivedLocation(location = location, now = now)
+                ReceivedLocation(location = location, now = now, myLocation = myLocation)
             }
 
             val acknowledged = entry.ackedBy.size
@@ -883,7 +895,7 @@ private fun ReceivedSosCard(
 }
 
 @Composable
-private fun ReceivedLocation(location: SosLocation, now: Long) {
+private fun ReceivedLocation(location: SosLocation, now: Long, myLocation: SosLocation?) {
     val context = LocalContext.current
     val noMapMessage = stringResource(R.string.jasiri_sos_no_map_app)
     val coords = formatCoords(location)
@@ -897,6 +909,17 @@ private fun ReceivedLocation(location: SosLocation, now: Long) {
     val approximate = if (location.approximate) stringResource(R.string.jasiri_sos_loc_approximate) else ""
 
     Column {
+        if (myLocation != null) {
+            val distanceLine = when (val d = sosDistance(myLocation, location)) {
+                is SosDistance.Away -> stringResource(R.string.jasiri_sos_distance_away, d.text, directionLabel(d.direction))
+                is SosDistance.VeryClose -> stringResource(R.string.jasiri_sos_distance_very_close, d.withinMeters)
+            }
+            Text(
+                text = distanceLine,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold
+            )
+        }
         Text(
             text = line + approximate,
             style = MaterialTheme.typography.bodyMedium
@@ -926,6 +949,20 @@ fun categoryLabel(c: SosCategory): String = stringResource(
         SosCategory.DETAINED -> R.string.jasiri_sos_cat_detained
         SosCategory.MISSING_PERSON -> R.string.jasiri_sos_cat_missing
         SosCategory.OTHER -> R.string.jasiri_sos_cat_other
+    }
+)
+
+@Composable
+private fun directionLabel(c: Compass8): String = stringResource(
+    when (c) {
+        Compass8.N -> R.string.jasiri_dir_n
+        Compass8.NE -> R.string.jasiri_dir_ne
+        Compass8.E -> R.string.jasiri_dir_e
+        Compass8.SE -> R.string.jasiri_dir_se
+        Compass8.S -> R.string.jasiri_dir_s
+        Compass8.SW -> R.string.jasiri_dir_sw
+        Compass8.W -> R.string.jasiri_dir_w
+        Compass8.NW -> R.string.jasiri_dir_nw
     }
 )
 
