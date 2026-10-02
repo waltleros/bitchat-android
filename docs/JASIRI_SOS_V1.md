@@ -156,14 +156,16 @@ A phone manages at most one SOS of its own at a time. Reference implementation:
 
 ### States
 
-`IDLE` → `ACTIVE` → either `CANCELLING` → `CANCELLED`, or `EXPIRED`. From `CANCELLED` or
-`EXPIRED` the phone can start a new SOS, or reset to `IDLE`.
+`IDLE` → `ACTIVE` → either `CANCELLING` → `CANCELLED`, or `EXPIRED`. From `CANCELLING`,
+`CANCELLED` or `EXPIRED` the phone can start a new SOS; from `CANCELLED` or `EXPIRED` it can
+also reset to `IDLE`.
 
 ### Rules
 
 1. **Start.** From `IDLE`, `CANCELLED` or `EXPIRED`, starting creates a new random non-zero
    `sosId` with `seq` 0, sends immediately and begins re-broadcasting. Starting while `ACTIVE`
-   is an update. Starting while `CANCELLING` is ignored.
+   is an update. Starting an SOS while a previous one is still cancelling begins a new SOS
+   (new sosId) and stops the remaining CANCEL repeats.
 2. **Payload.** Every SOS send uses `kind` = SOS, the current `sosId`, `seq` and body, and
    `timestamp` = the sender's clock in seconds at the moment of sending. A body that cannot be
    encoded is rejected before any state changes.
@@ -311,7 +313,8 @@ logic in `SosUiLogic.kt`.
   or an amber "not sent" warning while every attempt is failing.
   - Changing the category sends an update of the same SOS.
   - "I'm safe — cancel SOS" asks for confirmation before cancelling.
-  - Once cancelled or expired, an OK button returns to the idle screen.
+  - After cancelling, the SOS controls are shown again immediately with a 'SOS cancelled' line;
+    there is no OK step. The same applies after the SOS expires.
 - **Received list.** Each nearby SOS shows its category, the sender's nickname (or the first
   8 characters of the peer ID), when it was last heard, a "not heard recently" chip when stale,
   and the acknowledge and responding counts. Closed entries are dimmed.
@@ -334,6 +337,12 @@ wire type), `location/SosLocationSource.kt` (plain `LocationManager`) and `ui/So
 - **The SOS is never delayed.** It fires immediately with the best last-known fix (or none), then
   a fresh fix is requested and sent as an update of the same SOS. If the permission is missing,
   the SOS fires first and the permission dialog follows.
+- **Permanently denied.** If location permission was permanently denied, the location line offers
+  'open Settings' instead of a dialog that Android would no longer show.
+  - It counts as permanently denied when the SOS page has asked before (remembered in
+    `jasiri_prefs`, key `loc_perm_asked`) and Android no longer wants a rationale shown.
+  - Coming back from Settings re-checks the permission. If it was granted while an SOS is active
+    and sharing is on, a fresh fix is fetched straight away.
 - **Refresh.** While the SOS is active, the location is refreshed every 2 minutes, whether or not
   the SOS page is open (see "Location while the SOS page is closed").
 - **Known limit.** `fixAgeSeconds` in re-broadcasts is the fix age at the last update, not at

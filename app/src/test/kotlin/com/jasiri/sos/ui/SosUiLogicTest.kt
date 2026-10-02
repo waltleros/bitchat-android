@@ -98,6 +98,21 @@ class SosUiLogicTest {
     }
 
     @Test
+    fun `locPermissionAction opens settings only when asked before and no rationale`() {
+        assertEquals(LocPermissionAction.REQUEST, locPermissionAction(granted = false, askedBefore = false, shouldShowRationale = false))
+        assertEquals(LocPermissionAction.REQUEST, locPermissionAction(granted = false, askedBefore = true, shouldShowRationale = true))
+        assertEquals(LocPermissionAction.OPEN_SETTINGS, locPermissionAction(granted = false, askedBefore = true, shouldShowRationale = false))
+    }
+
+    @Test
+    fun `ownSosDisplay still maps the post-cancel states`() {
+        val cancelled = OwnSosStatus.IDLE.copy(sosId = 7L, seq = 1, body = BODY, startedAtMillis = NOW)
+        assertEquals(OwnSosDisplay.Cancelling, ownSosDisplay(cancelled.copy(state = OwnSosState.CANCELLING), NOW))
+        assertEquals(OwnSosDisplay.Cancelled, ownSosDisplay(cancelled.copy(state = OwnSosState.CANCELLED), NOW))
+        assertEquals(OwnSosDisplay.Expired, ownSosDisplay(cancelled.copy(state = OwnSosState.EXPIRED), NOW))
+    }
+
+    @Test
     fun `alertBadgeCount counts only active fresh entries`() {
         val entries = listOf(
             entry(sosId = 1),

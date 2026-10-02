@@ -80,12 +80,17 @@ class OwnSosController(
     private var job: Job? = null
     private var generation = 0L
 
-    /** @throws IllegalArgumentException if [body] cannot be encoded; state is left unchanged. */
+    /**
+     * From IDLE, CANCELLED or EXPIRED: starts a new SOS (new sosId, seq 0). While ACTIVE: acts like [update].
+     * While CANCELLING: stops the remaining CANCEL repeats of the old SOS and starts a new one.
+     *
+     * @throws IllegalArgumentException if [body] cannot be encoded; state is left unchanged.
+     */
     fun start(body: SosBody) {
         validate(body)
         synchronized(lock) {
             when (_status.value.state) {
-                OwnSosState.CANCELLING -> return
+                OwnSosState.CANCELLING -> stopJob()
                 OwnSosState.ACTIVE -> {
                     if (!expireIfDue(clockMillis())) {
                         updateLocked(body)

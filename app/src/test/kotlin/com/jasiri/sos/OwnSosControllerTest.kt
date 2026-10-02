@@ -7,6 +7,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
@@ -235,8 +236,8 @@ class OwnSosControllerTest {
 
     // 10
     @Test
-    fun `start while ACTIVE acts like update and start while CANCELLING is ignored`() = runTest {
-        val h = harness()
+    fun `start while ACTIVE acts like update and start while CANCELLING starts a new SOS`() = runTest {
+        val h = harness(idFor = { call -> if (call == 0) SOS_ID else SOS_ID_2 })
         h.controller.start(BODY)
         advanceTimeBy(10_000)
 
@@ -250,14 +251,30 @@ class OwnSosControllerTest {
         assertEquals(OwnSosState.ACTIVE, h.controller.status.value.state)
 
         h.controller.cancel()
+        assertEquals(OwnSosState.CANCELLING, h.controller.status.value.state)
+        assertEquals(1, h.sender.sent.count { it.payload.kind == SosKind.CANCEL })
         val sentBefore = h.sender.sent.size
-        val statusBefore = h.controller.status.value
 
         h.controller.start(BODY)
 
-        assertEquals(1, h.idCalls)
-        assertEquals(sentBefore, h.sender.sent.size)
-        assertEquals(statusBefore, h.controller.status.value)
+        assertEquals(2, h.idCalls)
+        val status = h.controller.status.value
+        assertEquals(OwnSosState.ACTIVE, status.state)
+        assertNotEquals(SOS_ID, status.sosId)
+        assertEquals(SOS_ID_2, status.sosId)
+        assertEquals(0, status.seq)
+        assertEquals(sentBefore + 1, h.sender.sent.size)
+        val fresh = h.sender.sent.last().payload
+        assertEquals(SosKind.SOS, fresh.kind)
+        assertEquals(SOS_ID_2, fresh.sosId)
+        assertEquals(0, fresh.seq)
+        assertEquals(BODY, fresh.body)
+
+        advanceTimeBy(2 * MINUTE)
+        runCurrent()
+
+        assertEquals(1, h.sender.sent.count { it.payload.kind == SosKind.CANCEL && it.payload.sosId == SOS_ID })
+        assertTrue(h.sender.sent.drop(sentBefore).all { it.payload.kind == SosKind.SOS && it.payload.sosId == SOS_ID_2 })
     }
 
     // 11
@@ -374,14 +391,17 @@ class OwnSosControllerTest {
         var idCalls = 0
     }
 
-    private fun TestScope.harness(config: OwnSosConfig = OwnSosConfig()): Harness {
+    private fun TestScope.harness(
+        config: OwnSosConfig = OwnSosConfig(),
+        idFor: (call: Int) -> Long = { SOS_ID }
+    ): Harness {
         val sender = FakeSender { testScheduler.currentTime }
         lateinit var harness: Harness
         val controller = OwnSosController(
             sender = sender,
             scope = backgroundScope,
             clockMillis = { testScheduler.currentTime },
-            newSosId = { harness.idCalls++; SOS_ID },
+            newSosId = { idFor(harness.idCalls++) },
             config = config
         )
         harness = Harness(controller, sender)
@@ -406,6 +426,7 @@ class OwnSosControllerTest {
 
     private companion object {
         const val SOS_ID = 0x0102030405060708L
+        const val SOS_ID_2 = 0x1112131415161718L
         const val MINUTE = 60_000L
 
         val BODY = SosBody(

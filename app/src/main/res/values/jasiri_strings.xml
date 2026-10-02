@@ -19,7 +19,7 @@
     <string name="jasiri_sos_cancel_confirm_body">Nearby phones will be told you\'re safe.</string>
     <string name="jasiri_sos_confirm_yes">Yes</string>
     <string name="jasiri_sos_confirm_no">No</string>
-    <string name="jasiri_sos_cancelling">Cancelling… telling nearby phones you\'re safe</string>
+    <string name="jasiri_sos_cancelling">SOS cancelled — telling nearby phones you\'re safe…</string>
     <string name="jasiri_sos_cancelled">SOS cancelled</string>
     <string name="jasiri_sos_expired">SOS expired after 6 hours</string>
     <string name="jasiri_sos_ok">OK</string>
@@ -64,6 +64,8 @@
     <string name="jasiri_sos_loc_getting">Location: getting a fix…</string>
     <string name="jasiri_sos_loc_off">Location: off</string>
     <string name="jasiri_sos_loc_no_permission">Location: permission denied — tap to allow</string>
+    <string name="jasiri_sos_loc_blocked">Location: blocked — tap to open Settings</string>
+    <string name="jasiri_sos_settings_failed">Couldn\'t open Settings</string>
     <string name="jasiri_sos_loc_unavailable">Location: unavailable (turn on GPS)</string>
 
     <!-- Location on received cards -->

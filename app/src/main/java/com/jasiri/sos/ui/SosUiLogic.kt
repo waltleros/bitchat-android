@@ -56,8 +56,20 @@ sealed interface LocStatus {
     object Getting : LocStatus
     data class Shared(val accuracyM: Int) : LocStatus
     object NoPermission : LocStatus
+    /** Permanently denied: Android will not show the dialog again, so the line opens app settings. */
+    object NoPermissionBlocked : LocStatus
     object Unavailable : LocStatus
 }
+
+enum class LocPermissionAction { REQUEST, OPEN_SETTINGS }
+
+/** granted -> REQUEST is never used by callers; not asked yet -> REQUEST; asked && !rationale -> OPEN_SETTINGS; else REQUEST. */
+fun locPermissionAction(granted: Boolean, askedBefore: Boolean, shouldShowRationale: Boolean): LocPermissionAction =
+    when {
+        granted -> LocPermissionAction.REQUEST
+        askedBefore && !shouldShowRationale -> LocPermissionAction.OPEN_SETTINGS
+        else -> LocPermissionAction.REQUEST
+    }
 
 /** Count of entries that are ACTIVE and not stale. Used for the header badge. */
 fun alertBadgeCount(entries: List<SosEntry>): Int =

@@ -1,11 +1,14 @@
 package com.jasiri.sos.ui
 
 import android.Manifest
+import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.net.Uri
 import android.os.BatteryManager
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -89,6 +92,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.app.ActivityCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bitchat.android.BuildConfig
 import com.bitchat.android.R
@@ -109,6 +116,7 @@ import com.jasiri.sos.SosEntryState
 import com.jasiri.sos.SosLocation
 import com.jasiri.sos.SosRuntime
 import com.jasiri.sos.sosDistance
+import com.jasiri.sos.location.LocPermissionStore
 import com.jasiri.sos.location.SosLocationOptOut
 import com.jasiri.sos.location.SosLocationSource
 import com.jasiri.sos.location.toSosLocationOrNull
@@ -261,8 +269,21 @@ private fun SosPageContent(runtime: SosRuntime, onDismiss: () -> Unit) {
     }
     var shareOn by rememberSaveable { mutableStateOf(initialShareLocation(own.status.value)) }
     var hasPermission by remember { mutableStateOf(source.hasPermission()) }
+    val activity = remember(context) { context.findActivity() }
+    fun permissionAction(): LocPermissionAction = locPermissionAction(
+        granted = source.hasPermission(),
+        askedBefore = LocPermissionStore.wasAsked(context),
+        shouldShowRationale = shouldShowLocationRationale(activity)
+    )
     var locStatus by remember {
-        mutableStateOf(initialLocStatus(own.status.value, shareOn, hasPermission))
+        mutableStateOf(
+            initialLocStatus(
+                own.status.value,
+                shareOn,
+                hasPermission,
+                blocked = !hasPermission && permissionAction() == LocPermissionAction.OPEN_SETTINGS
+            )
+        )
     }
 
     fun fetchAndUpdate() {
@@ -304,16 +325,53 @@ private fun SosPageContent(runtime: SosRuntime, onDismiss: () -> Unit) {
         if (granted) {
             fetchAndUpdate()
         } else {
-            locStatus = LocStatus.NoPermission
+            locStatus = if (permissionAction() == LocPermissionAction.OPEN_SETTINGS) {
+                LocStatus.NoPermissionBlocked
+            } else {
+                LocStatus.NoPermission
+            }
         }
     }
 
     fun requestLocationPermission() {
+        if (permissionAction() == LocPermissionAction.OPEN_SETTINGS) {
+            locStatus = LocStatus.NoPermissionBlocked
+            return
+        }
         locStatus = LocStatus.NoPermission
+        LocPermissionStore.markAsked(context)
         try {
             permissionLauncher.launch(LOCATION_PERMISSIONS)
         } catch (_: Exception) {
         }
+    }
+
+    val settingsFailedMessage = stringResource(R.string.jasiri_sos_settings_failed)
+    fun onLocationLineTap() {
+        if (locStatus == LocStatus.NoPermissionBlocked) {
+            if (!openAppSettings(activity ?: context)) {
+                Toast.makeText(context, settingsFailedMessage, Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            requestLocationPermission()
+        }
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event != Lifecycle.Event.ON_RESUME) return@LifecycleEventObserver
+            val granted = source.hasPermission()
+            hasPermission = granted
+            if (granted && (locStatus == LocStatus.NoPermission || locStatus == LocStatus.NoPermissionBlocked)) {
+                when {
+                    !shareOn -> locStatus = LocStatus.Off
+                    own.status.value.state == OwnSosState.ACTIVE -> fetchAndUpdate()
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     fun fire(category: SosCategory) {
@@ -423,7 +481,7 @@ private fun SosPageContent(runtime: SosRuntime, onDismiss: () -> Unit) {
                     shareLocation = shareOn,
                     onShareLocationChange = { onShareChanged(it) },
                     locStatus = locStatus,
-                    onRequestLocationPermission = { requestLocationPermission() },
+                    onRequestLocationPermission = { onLocationLineTap() },
                     onFire = { fire(it) }
                 )
             }
@@ -476,16 +534,13 @@ private fun OwnPanel(
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         when (val display = ownSosDisplay(status, now)) {
             OwnSosDisplay.Idle -> {
-                Text(
-                    text = stringResource(R.string.jasiri_sos_choose_category),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onBackground
+                SosStartControls(
+                    selected = selected,
+                    onSelect = { selected = it },
+                    shareLocation = shareLocation,
+                    onShareLocationChange = onShareLocationChange,
+                    onFire = { onFire(selected) }
                 )
-                CategoryChips(selected = selected, onSelect = { selected = it })
-                ShareLocationRow(checked = shareLocation, onCheckedChange = onShareLocationChange)
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    HoldToSendButton(onFire = { onFire(selected) })
-                }
             }
 
             is OwnSosDisplay.Sending, OwnSosDisplay.NotSent -> {
@@ -511,28 +566,48 @@ private fun OwnPanel(
                 CancelOwnSosButton(onConfirm = { own.cancel() })
             }
 
-            OwnSosDisplay.Cancelling -> {
-                Text(
-                    text = stringResource(R.string.jasiri_sos_cancelling),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-            }
-
-            OwnSosDisplay.Cancelled, OwnSosDisplay.Expired -> {
+            OwnSosDisplay.Cancelling, OwnSosDisplay.Cancelled, OwnSosDisplay.Expired -> {
                 Text(
                     text = stringResource(
-                        if (display == OwnSosDisplay.Cancelled) R.string.jasiri_sos_cancelled
-                        else R.string.jasiri_sos_expired
+                        when (display) {
+                            OwnSosDisplay.Cancelling -> R.string.jasiri_sos_cancelling
+                            OwnSosDisplay.Cancelled -> R.string.jasiri_sos_cancelled
+                            else -> R.string.jasiri_sos_expired
+                        }
                     ),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onBackground
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
                 )
-                Button(onClick = { own.resetToIdle() }) {
-                    Text(stringResource(R.string.jasiri_sos_ok))
-                }
+                SosStartControls(
+                    selected = selected,
+                    onSelect = { selected = it },
+                    shareLocation = shareLocation,
+                    onShareLocationChange = onShareLocationChange,
+                    onFire = { onFire(selected) }
+                )
             }
         }
+    }
+}
+
+/** Category, location switch and hold button; emitted straight into the caller's column. */
+@Composable
+private fun SosStartControls(
+    selected: SosCategory,
+    onSelect: (SosCategory) -> Unit,
+    shareLocation: Boolean,
+    onShareLocationChange: (Boolean) -> Unit,
+    onFire: () -> Unit
+) {
+    Text(
+        text = stringResource(R.string.jasiri_sos_choose_category),
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onBackground
+    )
+    CategoryChips(selected = selected, onSelect = onSelect)
+    ShareLocationRow(checked = shareLocation, onCheckedChange = onShareLocationChange)
+    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        HoldToSendButton(onFire = onFire)
     }
 }
 
@@ -577,7 +652,7 @@ private fun ActiveStatusCard(
                     fontWeight = FontWeight.Bold
                 )
             }
-            val noPermission = locStatus == LocStatus.NoPermission
+            val noPermission = locStatus == LocStatus.NoPermission || locStatus == LocStatus.NoPermissionBlocked
             Text(
                 text = locStatusText(locStatus),
                 style = MaterialTheme.typography.bodyMedium,
@@ -625,6 +700,7 @@ private fun locStatusText(status: LocStatus): String = when (status) {
         if (status.accuracyM == SOS_ACCURACY_UNKNOWN) stringResource(R.string.jasiri_sos_loc_shared_unknown_acc)
         else stringResource(R.string.jasiri_sos_loc_shared, status.accuracyM)
     LocStatus.NoPermission -> stringResource(R.string.jasiri_sos_loc_no_permission)
+    LocStatus.NoPermissionBlocked -> stringResource(R.string.jasiri_sos_loc_blocked)
     LocStatus.Unavailable -> stringResource(R.string.jasiri_sos_loc_unavailable)
 }
 
@@ -990,10 +1066,48 @@ private fun initialShareLocation(status: OwnSosStatus): Boolean {
     return status.state != OwnSosState.ACTIVE || sosId == null || !SosLocationOptOut.contains(sosId)
 }
 
-private fun initialLocStatus(status: OwnSosStatus, shareOn: Boolean, hasPermission: Boolean): LocStatus = when {
+private fun initialLocStatus(
+    status: OwnSosStatus,
+    shareOn: Boolean,
+    hasPermission: Boolean,
+    blocked: Boolean
+): LocStatus = when {
     !shareOn -> LocStatus.Off
+    !hasPermission && blocked -> LocStatus.NoPermissionBlocked
     !hasPermission -> LocStatus.NoPermission
     else -> status.body?.location?.let { LocStatus.Shared(it.accuracyMeters) } ?: LocStatus.Unavailable
+}
+
+private fun Context.findActivity(): Activity? {
+    var current: Context? = this
+    while (current != null) {
+        if (current is Activity) return current
+        current = (current as? ContextWrapper)?.baseContext
+    }
+    return null
+}
+
+/** Without an Activity there is no rationale to ask about; true keeps the plain dialog path. */
+private fun shouldShowLocationRationale(activity: Activity?): Boolean {
+    if (activity == null) return true
+    return try {
+        ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.ACCESS_FINE_LOCATION)
+    } catch (_: Exception) {
+        true
+    }
+}
+
+/** Opens this app's page in system settings. Returns false if nothing could be started. */
+private fun openAppSettings(context: Context): Boolean = try {
+    val intent = Intent(
+        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+        Uri.fromParts("package", context.packageName, null)
+    )
+    if (context !is Activity) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    context.startActivity(intent)
+    true
+} catch (_: Exception) {
+    false
 }
 
 private fun readBattery(context: Context): Int? = try {
