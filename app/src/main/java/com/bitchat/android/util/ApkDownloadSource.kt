@@ -48,12 +48,10 @@ internal object DefaultApkDownloadSources {
             id = GITHUB_ID,
             displayName = "GitHub Releases",
             latestApkUrls = listOf(
-                "https://github.com/permissionlesstech/bitchat-android/releases/latest/" +
-                    "download/bitchat-android-universal.apk",
+                com.jasiri.JasiriRelease.DOWNLOAD_LATEST + "bitchat-android-universal.apk", // JASIRI: JASIRI releases
                 // Releases published before the stable asset-name rollout use
                 // this filename. Remove when supported releases all use the primary URL.
-                "https://github.com/permissionlesstech/bitchat-android/releases/latest/" +
-                    "download/app-universal-release.apk"
+                com.jasiri.JasiriRelease.DOWNLOAD_LATEST + "app-universal-release.apk" // JASIRI: JASIRI releases
             )
         )
     )
