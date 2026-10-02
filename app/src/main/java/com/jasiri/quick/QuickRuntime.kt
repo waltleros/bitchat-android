@@ -56,7 +56,7 @@ class QuickRuntime(
     private class OwnRecord(
         val msgId: Long,
         val presetId: Int,
-        val location: QuickLocation?,
+        var location: QuickLocation?,
         var job: Job? = null,
         /** Encoded at the first send attempt; reused unchanged by [retry]. */
         var bytes: ByteArray? = null,
@@ -187,6 +187,32 @@ class QuickRuntime(
                 entries.remove(key)
                 val slot = ownSlots.indexOfFirst { it.first == key }
                 if (slot >= 0) ownSlots.removeAt(slot)
+                publishLocked()
+                true
+            }
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    /**
+     * Replace the location of a PENDING own entry before it is sent (fresh GPS fix during undo).
+     * Returns false if the key is unknown, not PENDING, already sending, or the codec rejects the
+     * location (state unchanged). Never throws. Does not touch the rate limit or the undo deadline.
+     */
+    fun updatePendingLocation(key: String, location: QuickLocation?): Boolean {
+        return try {
+            synchronized(lock) {
+                val record = ownRecords[key] ?: return false
+                val entry = entries[key] ?: return false
+                if (entry.status != QuickSendStatus.PENDING || record.sending) return false
+                try {
+                    QuickCodec.encode(QuickPayload(record.msgId, record.presetId, clockMillis() / 1000, location))
+                } catch (_: Exception) {
+                    return false
+                }
+                record.location = location
+                entries[key] = entry.copy(location = location)
                 publishLocked()
                 true
             }

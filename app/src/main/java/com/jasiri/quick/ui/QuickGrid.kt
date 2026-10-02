@@ -273,8 +273,27 @@ private fun QuickSheetContent(
         } else {
             null
         }
-        if (runtime.queue(preset.id, location) == null) {
+        val key = runtime.queue(preset.id, location)
+        if (key == null) {
             showToast(context, rateLimitedMessage)
+        }
+        try {
+            if (key != null && includeLocation && preset.wantsLocation && source.hasPermission()) {
+                // A newer requestFresh supersedes this one, so on rapid taps only the last message gets the fresh fix.
+                source.requestFresh(timeoutMillis = 4_000) { fix ->
+                    try {
+                        val fresh = fix
+                            ?.toSosLocationOrNull(System.currentTimeMillis(), approximate = !source.hasFinePermission())
+                            ?.toQuickLocation()
+                        val current = runtime.feed.value.firstOrNull { it.key == key }?.location
+                        if (shouldUseFreshQuickFix(current, fresh)) {
+                            runtime.updatePendingLocation(key, fresh)
+                        }
+                    } catch (_: Exception) {
+                    }
+                }
+            }
+        } catch (_: Exception) {
         }
     }
 

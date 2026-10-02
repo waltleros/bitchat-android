@@ -226,6 +226,62 @@ class QuickRuntimeTest {
         assertEquals(listOf("$OTHER:101"), retained.feed.value.map { it.key })
     }
 
+    // 13
+    @Test
+    fun `updatePendingLocation during the undo window replaces the sent location`() = runTest {
+        val runtime = runtime()
+        val recorder = Recorder()
+        attach(runtime, ME, recorder)
+
+        val key = runtime.queue(PRESET_TEAR_GAS, LOCATION)!!
+        advanceTimeBy(2_000)
+        assertTrue(runtime.updatePendingLocation(key, LOCATION_B))
+        assertEquals(LOCATION_B, runtime.feed.value.single().location)
+        assertEquals(QuickSendStatus.PENDING, runtime.feed.value.single().status)
+
+        advanceTimeBy(UNDO - 2_000)
+        runCurrent()
+
+        assertEquals(1, recorder.sent.size)
+        assertEquals(LOCATION_B, recorder.sent[0].location)
+        val entry = runtime.feed.value.single()
+        assertEquals(QuickSendStatus.SENT, entry.status)
+        assertEquals(LOCATION_B, entry.location)
+    }
+
+    // 14
+    @Test
+    fun `updatePendingLocation after SENT returns false and keeps the original location`() = runTest {
+        val runtime = runtime()
+        attach(runtime, ME, Recorder())
+
+        val key = runtime.queue(PRESET_TEAR_GAS, LOCATION)!!
+        advanceTimeBy(UNDO)
+        runCurrent()
+        assertEquals(QuickSendStatus.SENT, runtime.feed.value.single().status)
+
+        assertFalse(runtime.updatePendingLocation(key, LOCATION_B))
+        assertEquals(LOCATION, runtime.feed.value.single().location)
+    }
+
+    // 15
+    @Test
+    fun `updatePendingLocation for an unknown or undone key returns false`() = runTest {
+        val runtime = runtime()
+        val recorder = Recorder()
+        attach(runtime, ME, recorder)
+
+        assertFalse(runtime.updatePendingLocation("me:999", LOCATION_B))
+
+        val key = runtime.queue(PRESET_TEAR_GAS, LOCATION)!!
+        assertTrue(runtime.undo(key))
+        assertFalse(runtime.updatePendingLocation(key, LOCATION_B))
+        assertTrue(runtime.feed.value.isEmpty())
+        advanceTimeBy(10_000)
+        runCurrent()
+        assertTrue(recorder.sent.isEmpty())
+    }
+
     // Helpers
 
     private fun TestScope.runtime(config: QuickConfig = QuickConfig()): QuickRuntime =
@@ -267,11 +323,18 @@ class QuickRuntimeTest {
         const val UNDO = 5_000L
         const val PRESET_WATER = 2
         const val PRESET_MEDICAL = 3
+        const val PRESET_TEAR_GAS = 6
 
         val LOCATION = QuickLocation(
             latE7 = -12_863_890,
             lonE7 = 368_172_230,
             accuracyMeters = 13,
+            approximate = false
+        )
+        val LOCATION_B = QuickLocation(
+            latE7 = -12_870_000,
+            lonE7 = 368_200_000,
+            accuracyMeters = 8,
             approximate = false
         )
     }

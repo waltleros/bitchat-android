@@ -4,6 +4,7 @@ import com.jasiri.quick.QuickCatalog
 import com.jasiri.quick.QuickFeedEntry
 import com.jasiri.quick.QuickLocation
 import com.jasiri.quick.QuickSendStatus
+import com.jasiri.sos.SOS_ACCURACY_UNKNOWN
 import com.jasiri.sos.SosLocation
 
 /** Language shown under English when nothing better is available (Kenya-first). */
@@ -60,6 +61,20 @@ fun SosLocation.toQuickLocation(): QuickLocation = QuickLocation(
     accuracyMeters = accuracyMeters,
     approximate = approximate
 )
+
+/**
+ * Should a fresh fix replace the location queued from last-known?
+ * - fresh null -> false
+ * - current null -> true
+ * - fresh accuracy unknown (SOS_ACCURACY_UNKNOWN / 65535) while current is known -> false
+ * - otherwise -> true (a fresh fix is newer; last-known may be very old)
+ */
+fun shouldUseFreshQuickFix(current: QuickLocation?, fresh: QuickLocation?): Boolean = when {
+    fresh == null -> false
+    current == null -> true
+    fresh.accuracyMeters == SOS_ACCURACY_UNKNOWN && current.accuracyMeters != SOS_ACCURACY_UNKNOWN -> false
+    else -> true
+}
 
 /** The quick button is only for the Bluetooth mesh: hidden while a location (geohash) channel is selected. */
 fun quickButtonVisible(selected: com.bitchat.android.geohash.ChannelID): Boolean =

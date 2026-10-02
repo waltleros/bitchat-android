@@ -117,4 +117,20 @@ class QuickUiLogicTest {
         )
         assertFalse(quickButtonVisible(location))
     }
+
+    private fun quickLoc(acc: Int) =
+        QuickLocation(latE7 = -12_863_800, lonE7 = 368_172_200, accuracyMeters = acc, approximate = false)
+
+    @Test
+    fun `shouldUseFreshQuickFix needs a fresh fix and fills an empty location`() {
+        assertFalse(shouldUseFreshQuickFix(null, null))
+        assertTrue(shouldUseFreshQuickFix(null, quickLoc(25)))
+        assertFalse(shouldUseFreshQuickFix(quickLoc(10), null))
+    }
+
+    @Test
+    fun `shouldUseFreshQuickFix keeps a known accuracy over an unknown one`() {
+        assertFalse(shouldUseFreshQuickFix(quickLoc(10), quickLoc(65535)))
+        assertTrue(shouldUseFreshQuickFix(quickLoc(10), quickLoc(25)))
+    }
 }

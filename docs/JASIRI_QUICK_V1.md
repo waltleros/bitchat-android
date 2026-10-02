@@ -241,9 +241,14 @@ Reference implementation: `app/src/main/java/com/jasiri/quick/ui/QuickGrid.kt` a
   language underneath: the phone language if the catalog is complete in it, otherwise Swahili
   (Kenya-first default). Screen readers hear both labels.
 - **Location.** "Include my location" is on by default and applies only to presets that want a
-  location. It uses the last-known fix only: no fresh GPS request and no permission prompt from
-  this sheet. The fix is marked approximate when only coarse permission is granted. Without a
-  fix or permission, the message goes without a location.
+  location. On tap the message is queued with the last-known location and a fresh fix is
+  requested (4 s timeout). If it arrives during the 5 s undo window, it replaces the queued
+  location. Otherwise last-known (or none) is sent. There is no permission prompt from this sheet.
+  The fix is marked approximate when only coarse permission is granted. Without a fix or
+  permission, the message goes without a location.
+  - With several quick taps, only the last message gets the fresh fix; earlier ones keep
+    last-known. A fresh fix with unknown accuracy does not replace a last-known fix whose
+    accuracy is known.
 - **Feed.** Own and received messages, newest first, each with a tone colour bar, the labels,
   "You" or the sender's nickname, and how long ago it was heard. A location shows as
   coordinates with accuracy and an "Open in map" link. Own messages show "Sending in N s" with
